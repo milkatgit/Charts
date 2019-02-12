@@ -12,6 +12,7 @@
 import Foundation
 import CoreGraphics
 
+
 #if !os(OSX)
     import UIKit
 #endif
@@ -23,6 +24,9 @@ open class YAxisRenderer: AxisRendererBase
     {
         super.init(viewPortHandler: viewPortHandler, transformer: transformer, axis: yAxis)
     }
+    
+    ///newAdd
+    @objc open var isZMCus = false
     
     /// draws the y-axis labels to the screen
     open override func renderAxisLabels(context: CGContext)
@@ -133,7 +137,7 @@ open class YAxisRenderer: AxisRendererBase
             else { return }
         
         let labelFont = yAxis.labelFont
-        let labelTextColor = yAxis.labelTextColor
+        var labelTextColor = yAxis.labelTextColor
         
         let from = yAxis.isDrawBottomYLabelEntryEnabled ? 0 : 1
         let to = yAxis.isDrawTopYLabelEntryEnabled ? yAxis.entryCount : (yAxis.entryCount - 1)
@@ -141,6 +145,21 @@ open class YAxisRenderer: AxisRendererBase
         for i in stride(from: from, to: to, by: 1)
         {
             let text = yAxis.getFormattedLabel(i)
+            
+            //newAdd
+            if isZMCus == true {
+                if i == 3 {
+                    labelTextColor = UIColor.white
+                }else {
+                    if i < 3{
+                        labelTextColor = UIColor.init(red: 0, green: 1, blue: 0, alpha: 1)
+                    }
+                    else {
+                        labelTextColor = UIColor.init(red: 1, green: 0, blue: 0, alpha: 1)
+                    }
+                }
+                
+            }
             
             ChartUtils.drawText(
                 context: context,

@@ -33,6 +33,10 @@ public protocol ChartViewDelegate
     
     // Callbacks when the chart is moved / translated via drag gesture.
     @objc optional func chartTranslated(_ chartView: ChartViewBase, dX: CGFloat, dY: CGFloat)
+    
+//    @objc optional func chartMoveZM(_ chartView: ChartViewBase, point: CGPoint, layeX: CAShapeLayer,layerY:CAShapeLayer, entry: ChartDataEntry)
+
+
 }
 
 open class ChartViewBase: NSUIView, ChartDataProvider, AnimatorDelegate
@@ -367,12 +371,6 @@ open class ChartViewBase: NSUIView, ChartDataProvider, AnimatorDelegate
             attributes: attrs)
     }
     
-    // MARK: - Accessibility
-
-    open override func accessibilityChildren() -> [Any]? {
-        return renderer?.accessibleChartElements
-    }
-
     // MARK: - Highlighting
     
     /// - returns: The array of currently highlighted values. This might an empty if nothing is highlighted.
@@ -435,6 +433,7 @@ open class ChartViewBase: NSUIView, ChartDataProvider, AnimatorDelegate
     {
         highlightValue(x: x, dataSetIndex: dataSetIndex, dataIndex: dataIndex, callDelegate: true)
     }
+
     
     /// Highlights the value at the given x-value and y-value in the given DataSet.
     /// Provide -1 as the dataSetIndex to undo all highlighting.
@@ -535,6 +534,7 @@ open class ChartViewBase: NSUIView, ChartDataProvider, AnimatorDelegate
         setNeedsDisplay()
     }
     
+    
     /// - returns: The Highlight object (contains x-index and DataSet index) of the
     /// selected value at the given touch point inside the Line-, Scatter-, or
     /// CandleStick-Chart.
@@ -598,7 +598,10 @@ open class ChartViewBase: NSUIView, ChartDataProvider, AnimatorDelegate
     /// - returns: The actual position in pixels of the MarkerView for the given Entry in the given DataSet.
     @objc open func getMarkerPosition(highlight: Highlight) -> CGPoint
     {
-        return CGPoint(x: highlight.drawX, y: highlight.drawY)
+        //newAdd
+//        return CGPoint(x: highlight.drawX, y: highlight.drawY)
+        return CGPoint(x: highlight.xPx, y: highlight.drawY)
+
     }
     
     // MARK: - Animation

@@ -19,6 +19,9 @@ import CoreGraphics
 @objc(ChartXAxisRenderer)
 open class XAxisRenderer: AxisRendererBase
 {
+    //newAdd
+    @objc open var datas_cus = [Double]()
+    
     @objc public init(viewPortHandler: ViewPortHandler, xAxis: XAxis?, transformer: Transformer?)
     {
         super.init(viewPortHandler: viewPortHandler, transformer: transformer, axis: xAxis)
@@ -27,6 +30,14 @@ open class XAxisRenderer: AxisRendererBase
     open override func computeAxis(min: Double, max: Double, inverted: Bool)
     {
         var min = min, max = max
+
+        //newAdd
+//        if !datas_cus.isEmpty {
+//            computeAxisValues(min: min, max: max)
+//            axis?.entries = datas_cus
+//            return
+//        }
+
         
         if let transformer = self.transformer
         {

@@ -13,6 +13,14 @@ import Foundation
 
 open class ChartData: NSObject
 {
+    
+    /// 用于bar/candle/line类型 每个entry配置一个颜色-设置为true之后使用对应的set设置颜色失效
+    @objc open var ZMisUseEntryColor = false
+    /// 用于bar柱状图->宽度恒定为1-配合ZMisUseEntryColor使用为每个entry赋值一个颜色 -设置为true后设置宽度失效
+    @objc open var ZMisAlways1px = false//bar
+    /// 用于candle 是否绘制最高点最低点
+    @objc open var ZM_isDrawMinMax = false
+
     internal var _yMax: Double = -Double.greatestFiniteMagnitude
     internal var _yMin: Double = Double.greatestFiniteMagnitude
     internal var _xMax: Double = -Double.greatestFiniteMagnitude
@@ -756,20 +764,4 @@ open class ChartData: NSObject
         
         return max
     }
-
-    // MARK: - Accessibility
-
-    /// When the data entry labels are generated identifiers, set this property to prepend a string before each identifier
-    ///
-    /// For example, if a label is "#3", settings this property to "Item" allows it to be spoken as "Item #3"
-    @objc open var accessibilityEntryLabelPrefix: String?
-
-    /// When the data entry value requires a unit, use this property to append the string representation of the unit to the value
-    ///
-    /// For example, if a value is "44.1", setting this property to "m" allows it to be spoken as "44.1 m"
-    @objc open var accessibilityEntryLabelSuffix: String?
-
-    /// If the data entry value is a count, set this to true to allow plurals and other grammatical changes
-    /// **default**: false
-    @objc open var accessibilityEntryLabelSuffixIsCount: Bool = false
 }

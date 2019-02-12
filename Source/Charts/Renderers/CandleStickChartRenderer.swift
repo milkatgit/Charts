@@ -19,6 +19,11 @@ import CoreGraphics
 
 open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
 {
+    //newAdd
+    @objc open var increaceColor = UIColor.red
+    @objc open var decreaceColor = UIColor.red
+    @objc open var marketDot = 0
+
     @objc open weak var dataProvider: CandleChartDataProvider?
     
     @objc public init(dataProvider: CandleChartDataProvider, animator: Animator, viewPortHandler: ViewPortHandler)
@@ -31,17 +36,6 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
     open override func drawData(context: CGContext)
     {
         guard let dataProvider = dataProvider, let candleData = dataProvider.candleData else { return }
-
-        // If we redraw the data, remove and repopulate accessible elements to update label values and frames
-        accessibleChartElements.removeAll()
-
-        // Make the chart header the first element in the accessible elements array
-        if let chart = dataProvider as? CandleStickChartView {
-            let element = createAccessibleHeader(usingChart: chart,
-                                                 andData: candleData,
-                                                 withDefaultDescription: "CandleStick Chart")
-            accessibleChartElements.append(element)
-        }
 
         for set in candleData.dataSets as! [ICandleChartDataSet]
         {
@@ -61,24 +55,31 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
     
     @objc open func drawDataSet(context: CGContext, dataSet: ICandleChartDataSet)
     {
-        guard
-            let dataProvider = dataProvider,
-            let chart = dataProvider as? CandleStickChartView
-            else { return }
+        guard let dataProvider = dataProvider else { return }
 
+        
+        
         let trans = dataProvider.getTransformer(forAxis: dataSet.axisDependency)
         
         let phaseY = animator.phaseY
         let barSpace = dataSet.barSpace
         let showCandleBar = dataSet.showCandleBar
-        let entryCount = dataSet.entryCount
         
         _xBounds.set(chart: dataProvider, dataSet: dataSet, animator: animator)
         
         context.saveGState()
         
         context.setLineWidth(dataSet.shadowWidth)
-
+        
+        //newAdd
+        // 可见区域的最小最大值
+        var minValue: Double = Double.greatestFiniteMagnitude
+        var maxValue: Double = -Double.greatestFiniteMagnitude
+        
+        // 可见区域的最小最大值对应的X坐标点
+        var minPositionX: Double!
+        var maxPositionX: Double!
+        
         for j in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
         {
             // get the entry
@@ -91,16 +92,20 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
             let high = e.high
             let low = e.low
             
-            let doesContainMultipleDataSets = (dataProvider.candleData?.dataSets.count ?? 1) > 1
-            var accessibilityMovementDescription = "neutral"
-            var accessibilityRect = CGRect(x: CGFloat(xPos) + 0.5 - barSpace,
-                                           y: CGFloat(low * phaseY),
-                                           width: (2 * barSpace) - 1.0,
-                                           height: (CGFloat(abs(high - low) * phaseY)))
-            trans.rectValueToPixel(&accessibilityRect)
-
-            if showCandleBar
-            {
+            //newAdd
+            if minValue > low {
+                minValue = low
+                minPositionX = xPos
+            }
+            
+            if maxValue < high {
+                maxValue = high
+                maxPositionX = xPos
+            }
+            
+            let candleData = dataProvider.candleData
+            
+            if candleData?.ZMisUseEntryColor == true {//dataSet.ZMisUseEntryColor
                 // calculate the shadow
                 
                 _shadowPoints[0].x = CGFloat(xPos)
@@ -133,148 +138,294 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
                 trans.pointValuesToPixel(&_shadowPoints)
                 
                 // draw the shadows
+                var entryColor = e.ZMColorAndIsFill.count > 0 ? e.ZMColorAndIsFill[0] as! UIColor : nil
+                var entryIsFilled = e.ZMColorAndIsFill.count > 1 ? e.ZMColorAndIsFill[1] as! Bool : nil
+
+                if entryColor != nil {
+                    context.setStrokeColor((entryColor?.cgColor)!)
+                    context.strokeLineSegments(between: _shadowPoints)
+                    
+                    // calculate the body
+                    
+                    _bodyRect.origin.x = CGFloat(xPos) - 0.5 + barSpace
+                    _bodyRect.origin.y = CGFloat(close * phaseY)
+                    _bodyRect.size.width = (CGFloat(xPos) + 0.5 - barSpace) - _bodyRect.origin.x
+                    _bodyRect.size.height = CGFloat(open * phaseY) - _bodyRect.origin.y
+                    
+                    trans.rectValueToPixel(&_bodyRect)
+                    
+                    // draw body differently for increasing and decreasing entry
+                    if open == close {
+                        
+                        context.setStrokeColor((entryColor?.cgColor)!)
+                        context.stroke(_bodyRect)
+                    }else {
+                        if entryIsFilled!
+                        {
+                            context.setFillColor((entryColor?.cgColor)!)
+                            context.fill(_bodyRect)
+                        }
+                        else
+                        {
+                            context.setStrokeColor((entryColor?.cgColor)!)
+                            context.stroke(_bodyRect)
+                        }
+                    }
+                   
+                }
                 
-                var shadowColor: NSUIColor! = nil
-                if dataSet.shadowColorSameAsCandle
+               
+
+            }else {
+                if showCandleBar
                 {
+                    // calculate the shadow
+                    
+                    _shadowPoints[0].x = CGFloat(xPos)
+                    _shadowPoints[1].x = CGFloat(xPos)
+                    _shadowPoints[2].x = CGFloat(xPos)
+                    _shadowPoints[3].x = CGFloat(xPos)
+                    
                     if open > close
                     {
-                        shadowColor = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
+                        _shadowPoints[0].y = CGFloat(high * phaseY)
+                        _shadowPoints[1].y = CGFloat(open * phaseY)
+                        _shadowPoints[2].y = CGFloat(low * phaseY)
+                        _shadowPoints[3].y = CGFloat(close * phaseY)
                     }
                     else if open < close
                     {
-                        shadowColor = dataSet.increasingColor ?? dataSet.color(atIndex: j)
+                        _shadowPoints[0].y = CGFloat(high * phaseY)
+                        _shadowPoints[1].y = CGFloat(close * phaseY)
+                        _shadowPoints[2].y = CGFloat(low * phaseY)
+                        _shadowPoints[3].y = CGFloat(open * phaseY)
                     }
                     else
                     {
-                        shadowColor = dataSet.neutralColor ?? dataSet.color(atIndex: j)
+                        _shadowPoints[0].y = CGFloat(high * phaseY)
+                        _shadowPoints[1].y = CGFloat(open * phaseY)
+                        _shadowPoints[2].y = CGFloat(low * phaseY)
+                        _shadowPoints[3].y = _shadowPoints[1].y
                     }
-                }
-                
-                if shadowColor === nil
-                {
-                    shadowColor = dataSet.shadowColor ?? dataSet.color(atIndex: j)
-                }
-                
-                context.setStrokeColor(shadowColor.cgColor)
-                context.strokeLineSegments(between: _shadowPoints)
-                
-                // calculate the body
-                
-                _bodyRect.origin.x = CGFloat(xPos) - 0.5 + barSpace
-                _bodyRect.origin.y = CGFloat(close * phaseY)
-                _bodyRect.size.width = (CGFloat(xPos) + 0.5 - barSpace) - _bodyRect.origin.x
-                _bodyRect.size.height = CGFloat(open * phaseY) - _bodyRect.origin.y
-                
-                trans.rectValueToPixel(&_bodyRect)
-                
-                // draw body differently for increasing and decreasing entry
-
-                if open > close
-                {
-                    accessibilityMovementDescription = "decreasing"
-
-                    let color = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
                     
-                    if dataSet.isDecreasingFilled
-                    {
-                        context.setFillColor(color.cgColor)
-                        context.fill(_bodyRect)
-                    }
-                    else
-                    {
-                        context.setStrokeColor(color.cgColor)
-                        context.stroke(_bodyRect)
-                    }
-                }
-                else if open < close
-                {
-                    accessibilityMovementDescription = "increasing"
-
-                    let color = dataSet.increasingColor ?? dataSet.color(atIndex: j)
+                    trans.pointValuesToPixel(&_shadowPoints)
                     
-                    if dataSet.isIncreasingFilled
+                    // draw the shadows
+                    
+                    var shadowColor: NSUIColor! = nil
+                    if dataSet.shadowColorSameAsCandle
                     {
-                        context.setFillColor(color.cgColor)
-                        context.fill(_bodyRect)
+                        if open > close
+                        {
+                            shadowColor = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
+                        }
+                        else if open < close
+                        {
+                            shadowColor = dataSet.increasingColor ?? dataSet.color(atIndex: j)
+                        }
+                        else
+                        {
+                            shadowColor = dataSet.neutralColor ?? dataSet.color(atIndex: j)
+                        }
+                    }
+                    
+                    if shadowColor === nil
+                    {
+                        shadowColor = dataSet.shadowColor ?? dataSet.color(atIndex: j)
+                    }
+                    
+                    context.setStrokeColor(shadowColor.cgColor)
+                    context.strokeLineSegments(between: _shadowPoints)
+                    
+                    // calculate the body
+                    
+                    _bodyRect.origin.x = CGFloat(xPos) - 0.5 + barSpace
+                    _bodyRect.origin.y = CGFloat(close * phaseY)
+                    _bodyRect.size.width = (CGFloat(xPos) + 0.5 - barSpace) - _bodyRect.origin.x
+                    _bodyRect.size.height = CGFloat(open * phaseY) - _bodyRect.origin.y
+                    
+                    trans.rectValueToPixel(&_bodyRect)
+                    
+                    // draw body differently for increasing and decreasing entry
+                    
+                    if open > close
+                    {
+                        let color = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
+                        
+                        if dataSet.isDecreasingFilled
+                        {
+                            context.setFillColor(color.cgColor)
+                            context.fill(_bodyRect)
+                        }
+                        else
+                        {
+                            context.setStrokeColor(color.cgColor)
+                            context.stroke(_bodyRect)
+                        }
+                    }
+                    else if open < close
+                    {
+                        let color = dataSet.increasingColor ?? dataSet.color(atIndex: j)
+                        
+                        if dataSet.isIncreasingFilled
+                        {
+                            context.setFillColor(color.cgColor)
+                            context.fill(_bodyRect)
+                        }
+                        else
+                        {
+                            context.setStrokeColor(color.cgColor)
+                            context.stroke(_bodyRect)
+                        }
                     }
                     else
                     {
+                        let color = dataSet.neutralColor ?? dataSet.color(atIndex: j)
+                        
                         context.setStrokeColor(color.cgColor)
                         context.stroke(_bodyRect)
                     }
                 }
                 else
                 {
-                    let color = dataSet.neutralColor ?? dataSet.color(atIndex: j)
+                    _rangePoints[0].x = CGFloat(xPos)
+                    _rangePoints[0].y = CGFloat(high * phaseY)
+                    _rangePoints[1].x = CGFloat(xPos)
+                    _rangePoints[1].y = CGFloat(low * phaseY)
                     
-                    context.setStrokeColor(color.cgColor)
-                    context.stroke(_bodyRect)
+                    _openPoints[0].x = CGFloat(xPos) - 0.5 + barSpace
+                    _openPoints[0].y = CGFloat(open * phaseY)
+                    _openPoints[1].x = CGFloat(xPos)
+                    _openPoints[1].y = CGFloat(open * phaseY)
+                    
+                    _closePoints[0].x = CGFloat(xPos) + 0.5 - barSpace
+                    _closePoints[0].y = CGFloat(close * phaseY)
+                    _closePoints[1].x = CGFloat(xPos)
+                    _closePoints[1].y = CGFloat(close * phaseY)
+                    
+                    trans.pointValuesToPixel(&_rangePoints)
+                    trans.pointValuesToPixel(&_openPoints)
+                    trans.pointValuesToPixel(&_closePoints)
+                    
+                    // draw the ranges
+                    var barColor: NSUIColor! = nil
+                    
+                    if open > close
+                    {
+                        barColor = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
+                    }
+                    else if open < close
+                    {
+                        barColor = dataSet.increasingColor ?? dataSet.color(atIndex: j)
+                    }
+                    else
+                    {
+                        barColor = dataSet.neutralColor ?? dataSet.color(atIndex: j)
+                    }
+                    
+                    context.setStrokeColor(barColor.cgColor)
+                    context.strokeLineSegments(between: _rangePoints)
+                    context.strokeLineSegments(between: _openPoints)
+                    context.strokeLineSegments(between: _closePoints)
                 }
             }
-            else
-            {
-                _rangePoints[0].x = CGFloat(xPos)
-                _rangePoints[0].y = CGFloat(high * phaseY)
-                _rangePoints[1].x = CGFloat(xPos)
-                _rangePoints[1].y = CGFloat(low * phaseY)
-
-                _openPoints[0].x = CGFloat(xPos) - 0.5 + barSpace
-                _openPoints[0].y = CGFloat(open * phaseY)
-                _openPoints[1].x = CGFloat(xPos)
-                _openPoints[1].y = CGFloat(open * phaseY)
-
-                _closePoints[0].x = CGFloat(xPos) + 0.5 - barSpace
-                _closePoints[0].y = CGFloat(close * phaseY)
-                _closePoints[1].x = CGFloat(xPos)
-                _closePoints[1].y = CGFloat(close * phaseY)
-                
-                trans.pointValuesToPixel(&_rangePoints)
-                trans.pointValuesToPixel(&_openPoints)
-                trans.pointValuesToPixel(&_closePoints)
-                
-                // draw the ranges
-                var barColor: NSUIColor! = nil
-
-                if open > close
-                {
-                    accessibilityMovementDescription = "decreasing"
-                    barColor = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
-                }
-                else if open < close
-                {
-                    accessibilityMovementDescription = "increasing"
-                    barColor = dataSet.increasingColor ?? dataSet.color(atIndex: j)
-                }
-                else
-                {
-                    barColor = dataSet.neutralColor ?? dataSet.color(atIndex: j)
-                }
-                
-                context.setStrokeColor(barColor.cgColor)
-                context.strokeLineSegments(between: _rangePoints)
-                context.strokeLineSegments(between: _openPoints)
-                context.strokeLineSegments(between: _closePoints)
-            }
-
-            let axElement = createAccessibleElement(withIndex: j,
-                                                    container: chart,
-                                                    dataSet: dataSet)
-            { (element) in
-                element.accessibilityLabel = "\(doesContainMultipleDataSets ? "\(dataSet.label ?? "Dataset")" : "") " + "\(xPos) - \(accessibilityMovementDescription). low: \(low), high: \(high), opening: \(open), closing: \(close)"
-                element.accessibilityFrame = accessibilityRect
-            }
-
-            accessibleChartElements.append(axElement)
-
+            
+           
         }
+        
+        //newAdd
+        let candleData = dataProvider.candleData
 
-        // Post this notification to let VoiceOver account for the redrawn frames
-        accessibilityPostLayoutChangedNotification()
+        if candleData?.ZM_isDrawMinMax == true {
+            // 可见区域最左边的那条数据
+            guard let lowestVisbleEntry = dataSet.entryForIndex(_xBounds.min) as? CandleChartDataEntry else {
+                return
+            }
+            var lowestVisblePoint: CGPoint = CGPoint.init(x: lowestVisbleEntry.x, y: lowestVisbleEntry.high) // 此处主要是为了获取X坐标，lowestVisbleEntry.high可为low、open、close
+            trans.pointValueToPixel(&lowestVisblePoint)
+            
+            // 可见区域最右边的那条数据
+            guard let highestVisbleEntry = dataSet.entryForIndex( _xBounds.range + _xBounds.min) as? CandleChartDataEntry else {
+                return
+            }
+            var highestVisblePoint: CGPoint = CGPoint.init(x: highestVisbleEntry.x, y: highestVisbleEntry.high)
+            trans.pointValueToPixel(&highestVisblePoint)
+            
+            // 可见区域中的最小值
+            //        let minValueStr = String.init(format: "%.4f", minValue)
+            
+            let minValueStr = self.priceString(decimalNumber: NSDecimalNumber(value: minValue), marketDot: Int32(marketDot))
+            
+            var minPoint: CGPoint = CGPoint.init(x: CGFloat(minPositionX), y: CGFloat(minValue * animator.phaseY))
+            // 点转化为像素
+            trans.pointValueToPixel(&minPoint)
+            calculateTextPosition(minValueStr, originPoint: &minPoint, lowestVisibleX: lowestVisblePoint.x, highestVisibleX: highestVisblePoint.x, isMaxValue: false)
+            
+            // 可见区域中的最大值
+            //        let maxValueStr = String.init(format: "%.4f", maxValue)
+            let maxValueStr = self.priceString(decimalNumber: NSDecimalNumber(value: maxValue), marketDot: Int32(marketDot))
+            
+            var maxPoint: CGPoint = CGPoint.init(x: CGFloat(maxPositionX), y: CGFloat(maxValue * animator.phaseY))
+            trans.pointValueToPixel(&maxPoint)
+            calculateTextPosition(maxValueStr, originPoint: &maxPoint, lowestVisibleX: lowestVisblePoint.x, highestVisibleX: highestVisblePoint.x, isMaxValue: true)
+        }
+       
 
         context.restoreGState()
     }
-    
+    func priceString(decimalNumber: NSDecimalNumber, marketDot: Int32) -> String {
+        let handler = NSDecimalNumberHandler(roundingMode: .plain, scale: Int16(marketDot), raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: true)
+        
+        let result = decimalNumber.rounding(accordingToBehavior: handler)
+        let formatter = NumberFormatter()
+        formatter.minimumIntegerDigits = 1
+        formatter.maximumFractionDigits = Int(marketDot)
+        formatter.minimumFractionDigits = Int(marketDot)
+        return formatter.string(from: result)!
+    }
+//    fileprivate func getMarket {
+//        NSDecimalNumberHandler *roudbe = [NSDecimalNumberHandler decimalNumberHandlerWithRoundingMode:NSRoundPlain scale:marketDot raiseOnExactness:NO raiseOnOverflow:NO raiseOnUnderflow:NO raiseOnDivideByZero:NO];
+//        NSDecimalNumber *aDn = [[NSDecimalNumber alloc] initWithDouble:doubleValue];
+//        NSDecimalNumber *resultD = [aDn decimalNumberByRoundingAccordingToBehavior:roudbe];
+//        NSNumberFormatter *formater = [[NSNumberFormatter alloc] init];
+//        [formater setMinimumIntegerDigits:1];
+//        [formater setMaximumFractionDigits:marketDot];
+//        [formater setMinimumFractionDigits:marketDot];
+//    }
+   
+    //newAdd
+    // 计算绘制位置并绘制文本 edited by Leo
+    fileprivate func calculateTextPosition(_ valueText: String, originPoint: inout CGPoint, lowestVisibleX: CGFloat, highestVisibleX: CGFloat, isMaxValue: Bool){
+        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey.font: UIFont.init(name: "PingFang-SC-SemiBold", size: 10) ?? UIColor.red, NSAttributedStringKey.foregroundColor: isMaxValue==true ? increaceColor:decreaceColor]
+        
+        let stringText = NSString.init(string: "←\(valueText)")
+        
+        let textWidth = stringText.boundingRect(with: CGSize.init(width: 0, height: 12), options: .usesLineFragmentOrigin, attributes: attributes, context: nil).width + 2
+        var resultText: NSString?
+        
+        if isMaxValue {
+            originPoint.y -= 8
+        } else {
+            originPoint.y -= 0
+        }
+        if originPoint.x - 10 < lowestVisibleX {
+            originPoint.x += 3
+            resultText = NSString(string: "←" + valueText)
+        }
+        else if originPoint.x - textWidth - 10 < lowestVisibleX {
+            originPoint.x += 3
+            resultText = NSString(string: "←" + valueText)
+        }
+        else if ((originPoint.x + textWidth + 10 >= highestVisibleX) && (highestVisibleX - lowestVisibleX >= textWidth + 3)) {
+            resultText = NSString(string: valueText + "→")
+            originPoint.x -= (textWidth + 2)
+        }
+        else {
+            originPoint.x += 3
+            resultText = NSString(string: "←" + valueText)
+        }
+        resultText?.draw(at: originPoint, withAttributes: attributes)
+    }
     open override func drawValues(context: CGContext)
     {
         guard
@@ -416,18 +567,5 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
         }
         
         context.restoreGState()
-    }
-
-    private func createAccessibleElement(withIndex idx: Int,
-                                         container: CandleChartDataProvider,
-                                         dataSet: ICandleChartDataSet,
-                                         modifier: (NSUIAccessibilityElement) -> ()) -> NSUIAccessibilityElement {
-
-        let element = NSUIAccessibilityElement(accessibilityContainer: container)
-
-        // The modifier allows changing of traits and frame depending on highlight, rotation, etc
-        modifier(element)
-
-        return element
     }
 }

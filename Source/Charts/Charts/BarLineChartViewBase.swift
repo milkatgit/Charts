@@ -19,6 +19,10 @@ import CoreGraphics
 /// Base-class of LineChart, BarChart, ScatterChart and CandleStickChart.
 open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartDataProvider, NSUIGestureRecognizerDelegate
 {
+    
+    //newAdd
+    @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
+    @objc open var isZMShadow = false
     /// the maximum number of entries to which values will be drawn
     /// (entry numbers greater than this value will cause value-labels to disappear)
     internal var _maxVisibleCount = 100
@@ -86,6 +90,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     @objc open lazy var xAxisRenderer = XAxisRenderer(viewPortHandler: _viewPortHandler, xAxis: _xAxis, transformer: _leftAxisTransformer)
     
     internal var _tapGestureRecognizer: NSUITapGestureRecognizer!
+
     internal var _doubleTapGestureRecognizer: NSUITapGestureRecognizer!
     #if !os(tvOS)
     internal var _pinchGestureRecognizer: NSUIPinchGestureRecognizer!
@@ -110,23 +115,36 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         stopDeceleration()
     }
     
+
+   
+    
     internal override func initialize()
     {
         super.initialize()
 
+        //newAdd
+        topLabel.font = UIFont.systemFont(ofSize: 10)
+        topLabel.numberOfLines = 0
+        self.addSubview(topLabel)
+        
         _leftAxisTransformer = Transformer(viewPortHandler: _viewPortHandler)
         _rightAxisTransformer = Transformer(viewPortHandler: _viewPortHandler)
         
         self.highlighter = ChartHighlighter(chart: self)
         
         _tapGestureRecognizer = NSUITapGestureRecognizer(target: self, action: #selector(tapGestureRecognized(_:)))
+
+        
         _doubleTapGestureRecognizer = NSUITapGestureRecognizer(target: self, action: #selector(doubleTapGestureRecognized(_:)))
         _doubleTapGestureRecognizer.nsuiNumberOfTapsRequired = 2
         _panGestureRecognizer = NSUIPanGestureRecognizer(target: self, action: #selector(panGestureRecognized(_:)))
+  
         
         _panGestureRecognizer.delegate = self
         
         self.addGestureRecognizer(_tapGestureRecognizer)
+      
+        
         self.addGestureRecognizer(_doubleTapGestureRecognizer)
         self.addGestureRecognizer(_panGestureRecognizer)
         
@@ -166,6 +184,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         }
     }
     
+    
     open override func draw(_ rect: CGRect)
     {
         super.draw(rect)
@@ -178,6 +197,9 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         // execute all drawing commands
         drawGridBackground(context: context)
         
+        if isZMShadow {
+            drawGradient(context: context)
+        }
 
         if _autoScaleMinMaxEnabled
         {
@@ -503,6 +525,17 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         }
     }
     
+    internal func drawGradient(context: CGContext) {
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let colors = [UIColor(red: 0, green: 0, blue: 0, alpha: 1).cgColor,UIColor(red: 2/255.0, green: 23/255.0, blue: 48/255.0, alpha: 1).cgColor]
+        let locations:[CGFloat] = [0,1]
+        
+        let gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: locations)!
+        let start = CGPoint(x: 0, y: 0)
+        let end = CGPoint(x: _viewPortHandler.contentRight, y: 0)
+        context.drawLinearGradient(gradient, start: start, end: end, options: .drawsBeforeStartLocation)
+    }
+    
     // MARK: - Gestures
     
     private enum GestureScaleAxis
@@ -527,6 +560,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     
     @objc private func tapGestureRecognized(_ recognizer: NSUITapGestureRecognizer)
     {
+        
         if _data === nil
         {
             return
@@ -550,6 +584,8 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
             }
         }
     }
+
+
     
     @objc private func doubleTapGestureRecognized(_ recognizer: NSUITapGestureRecognizer)
     {
@@ -638,6 +674,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                     var location = recognizer.location(in: self)
                     location.x = location.x - _viewPortHandler.offsetLeft
                     
+        
                     if isTouchInverted()
                     {
                         location.y = -(location.y - _viewPortHandler.offsetTop)
@@ -669,6 +706,8 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         }
     }
     #endif
+    
+   
     
     @objc private func panGestureRecognized(_ recognizer: NSUIPanGestureRecognizer)
     {
@@ -721,7 +760,16 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                     }
                 }
                 
+                var p2 = valueForTouchPoint(point: translation, axis: leftAxis.axisDependency)
+                var int = NSInteger(p2.x)
+                var p3 = pixelForValues(x: Double(int), y: Double(p2.y), axis: leftAxis.axisDependency)
+                
+                
+                
+                _lastPanPoint = p3
+
                 _lastPanPoint = recognizer.translation(in: self)
+   
             }
             else if self.isHighlightPerDragEnabled
             {
@@ -736,7 +784,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
             {
                 let originalTranslation = recognizer.translation(in: self)
                 var translation = CGPoint(x: originalTranslation.x - _lastPanPoint.x, y: originalTranslation.y - _lastPanPoint.y)
-                
+                //stepBy
                 if !self.dragXEnabled
                 {
                     translation.x = 0.0
@@ -746,6 +794,11 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                     translation.y = 0.0
                 }
                 
+                var p2 = valueForTouchPoint(point: translation, axis: leftAxis.axisDependency)
+                var int = NSInteger(p2.x)
+                var p3 = pixelForValues(x: Double(int), y: Double(p2.y), axis: leftAxis.axisDependency)
+//                let _ = performPanChange(translation: p3)
+
                 let _ = performPanChange(translation: translation)
                 
                 _lastPanPoint = originalTranslation
@@ -762,6 +815,9 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                     self.highlightValue(h, callDelegate: true)
                 }
             }
+
+           
+
         }
         else if recognizer.state == NSUIGestureRecognizerState.ended || recognizer.state == NSUIGestureRecognizerState.cancelled
         {
@@ -788,7 +844,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
             }
         }
     }
-    
+
     private func performPanChange(translation: CGPoint) -> Bool
     {
         var translation = translation
@@ -804,14 +860,16 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                 translation.y = -translation.y
             }
         }
+
         
         let originalMatrix = _viewPortHandler.touchMatrix
-        
+    
         var matrix = CGAffineTransform(translationX: translation.x, y: translation.y)
         matrix = originalMatrix.concatenating(matrix)
         
+
         matrix = _viewPortHandler.refresh(newMatrix: matrix, chart: self, invalidate: true)
-        
+
         if delegate !== nil
         {
             delegate?.chartTranslated?(self, dX: translation.x, dY: translation.y)
@@ -1537,7 +1595,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     }
     
     /// is dragging on the X axis enabled?
-    @objc open var dragXEnabled: Bool
+    open var dragXEnabled: Bool 
     {
         get
         {
@@ -1550,7 +1608,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     }
     
     /// is dragging on the Y axis enabled?
-    @objc open var dragYEnabled: Bool
+    open var dragYEnabled: Bool
     {
         get
         {

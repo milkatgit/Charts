@@ -34,6 +34,7 @@ open class CombinedChartRenderer: DataRenderer
         
         createRenderers()
     }
+
     
     /// Creates the renderers needed for this combined-renderer in the required order. Also takes the DrawOrder into consideration.
     internal func createRenderers()
@@ -41,7 +42,7 @@ open class CombinedChartRenderer: DataRenderer
         _renderers = [DataRenderer]()
         
         guard let chart = chart else { return }
-
+        
         for order in drawOrder
         {
             switch (order)
@@ -93,24 +94,28 @@ open class CombinedChartRenderer: DataRenderer
         }
     }
     
+    //newAdd
+    func drawLinearGradient(context:CGContext ) -> Void {//, path:CGPath , startColor:CGColor, endColor :CGColor
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        var locations:[CGFloat] = [0.0,1.0]
+        let colors = [UIColor.init(red: 1, green: 0, blue: 0, alpha: 1).cgColor,UIColor.init(red: 0, green: 1, blue: 0, alpha: 1).cgColor]
+        var gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: [0.0,1.0])
+        var pathRect = CGPath(rect: (self.chart?.bounds)!, transform: nil)
+        var startPoint = CGPoint(x: 0, y: 0)
+        var endPoint = CGPoint(x: 1, y: 0)
+        
+        context.saveGState()
+        context.addPath(pathRect)
+        context.clip()
+        context.drawLinearGradient(gradient!, start: startPoint, end: endPoint, options: CGGradientDrawingOptions(rawValue: 0))
+        context.restoreGState()
+//        CGColorSpace()
+//        CGContext.addPath(context)
+    }
+    
     open override func drawData(context: CGContext)
     {
-        // If we redraw the data, remove and repopulate accessible elements to update label values and frames
-        accessibleChartElements.removeAll()
-
-        if
-            let combinedChart = chart,
-            let data = combinedChart.data {
-            // Make the chart header the first element in the accessible elements array
-            let element = createAccessibleHeader(usingChart: combinedChart,
-                                                 andData: data,
-                                                 withDefaultDescription: "Combined Chart")
-            accessibleChartElements.append(element)
-        }
-
-        // TODO: Due to the potential complexity of data presented in Combined charts, a more usable way
-        // for VO accessibility would be to use axis based traversal rather than by dataset.
-        // Hence, accessibleChartElements is not populated below. (Individual renderers guard against dataSource being their respective views)
+        
         for renderer in _renderers
         {
             renderer.drawData(context: context)

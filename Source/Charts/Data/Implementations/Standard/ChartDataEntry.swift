@@ -13,6 +13,11 @@ import Foundation
 
 open class ChartDataEntry: ChartDataEntryBase
 {
+    //newAdd
+    /// 传入text 天眼2号根据text绘制对应的箭头
+    @objc open var ZM_drawLabelText : String?
+    /// 传入一个(颜色,是否填充)数组 用于bar
+    @objc open var ZMColorAndIsFill : [Any] = []
     /// the x value
     @objc open var x = Double(0.0)
     
@@ -20,6 +25,7 @@ open class ChartDataEntry: ChartDataEntryBase
     {
         super.init()
     }
+    
     
     /// An Entry represents one single entry in the chart.
     /// - parameter x: the x value
@@ -41,6 +47,7 @@ open class ChartDataEntry: ChartDataEntryBase
         super.init(y: y)
         
         self.x = x
+    
         
         self.data = data
     }

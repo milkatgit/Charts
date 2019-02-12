@@ -15,6 +15,10 @@ import CoreGraphics
 @objc
 public protocol ICandleChartDataSet: ILineScatterCandleRadarChartDataSet
 {
+    //newAdd
+//    var ZMisUseEntryColor :Bool {set get}
+//    var ZM_isDrawMinMax: Bool { set get }
+
     // MARK: - Data functions and accessors
     
     // MARK: - Styling functions and accessors

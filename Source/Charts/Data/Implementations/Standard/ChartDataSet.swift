@@ -24,6 +24,7 @@ public enum ChartDataSetRounding: Int
 /// It is designed to logically separate different groups of values inside the Chart (e.g. the values for a specific line in the LineChart, or the values of a specific group of bars in the BarChart).
 open class ChartDataSet: ChartBaseDataSet
 {
+   
     public required init()
     {
         values = []
@@ -356,7 +357,7 @@ open class ChartDataSet: ChartBaseDataSet
                     let value = values[closest]
                     
                     if value.x != closestXValue { break }
-                    if abs(value.y - yValue) <= abs(closestYValue - yValue)
+                    if abs(value.y - yValue) < abs(closestYValue - yValue)
                     {
                         closestYValue = yValue
                         closestYIndex = closest
