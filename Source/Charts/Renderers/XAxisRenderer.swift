@@ -19,8 +19,7 @@ import CoreGraphics
 @objc(ChartXAxisRenderer)
 open class XAxisRenderer: AxisRendererBase
 {
-    //newAdd
-    @objc open var datas_cus = [Double]()
+    
     
     @objc public init(viewPortHandler: ViewPortHandler, xAxis: XAxis?, transformer: Transformer?)
     {
@@ -30,13 +29,6 @@ open class XAxisRenderer: AxisRendererBase
     open override func computeAxis(min: Double, max: Double, inverted: Bool)
     {
         var min = min, max = max
-
-        //newAdd
-//        if !datas_cus.isEmpty {
-//            computeAxisValues(min: min, max: max)
-//            axis?.entries = datas_cus
-//            return
-//        }
 
         
         if let transformer = self.transformer
@@ -156,7 +148,7 @@ open class XAxisRenderer: AxisRendererBase
         {
             _axisLineSegmentsBuffer[0].x = viewPortHandler.contentLeft
             _axisLineSegmentsBuffer[0].y = viewPortHandler.contentTop
-            _axisLineSegmentsBuffer[1].x = viewPortHandler.contentRight
+            _axisLineSegmentsBuffer[1].x = UIScreen.main.bounds.size.width  //viewPortHandler.contentRight/*newAdd*/
             _axisLineSegmentsBuffer[1].y = viewPortHandler.contentTop
             context.strokeLineSegments(between: _axisLineSegmentsBuffer)
         }
@@ -167,7 +159,7 @@ open class XAxisRenderer: AxisRendererBase
         {
             _axisLineSegmentsBuffer[0].x = viewPortHandler.contentLeft
             _axisLineSegmentsBuffer[0].y = viewPortHandler.contentBottom
-            _axisLineSegmentsBuffer[1].x = viewPortHandler.contentRight
+            _axisLineSegmentsBuffer[1].x = UIScreen.main.bounds.size.width  // viewPortHandler.contentRight/*newAdd*/
             _axisLineSegmentsBuffer[1].y = viewPortHandler.contentBottom
             context.strokeLineSegments(between: _axisLineSegmentsBuffer)
         }

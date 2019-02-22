@@ -57,8 +57,6 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
     {
         guard let dataProvider = dataProvider else { return }
 
-        
-        
         let trans = dataProvider.getTransformer(forAxis: dataSet.axisDependency)
         
         let phaseY = animator.phaseY
@@ -330,6 +328,27 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
                 }
             }
             
+            //newAdd
+            if !e.ZMContractName.isEmpty {
+                let path = CGMutablePath()
+                var p1 = CGPoint(x: CGFloat(xPos - 0.5), y: 0)
+                var p2 = CGPoint(x: CGFloat(xPos - 0.5), y: 0)
+                trans.pointValueToPixel(&p1)
+                trans.pointValueToPixel(&p2)
+
+                p2.y = viewPortHandler.contentBottom
+                p1.y = viewPortHandler.contentBottom - 30
+
+                ChartUtils.drawText(context: context, text: e.ZMContractName, point: CGPoint(x: p1.x, y: p2.y - 13), align: .left, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 12), NSAttributedStringKey.foregroundColor: UIColor.yellow])
+                
+                path.move(to: p1)
+                path.addLine(to: p2)
+                context.addPath(path)
+                context.setFillColor(UIColor.yellow.cgColor)
+                context.setLineWidth(1)
+                context.setStrokeColor(UIColor.yellow.cgColor)
+                context.strokePath()
+            }
            
         }
         
@@ -373,6 +392,11 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
 
         context.restoreGState()
     }
+    //newAdd
+    func ZMDrawContractName(e: CandleChartDataEntry) {
+        
+    }
+    
     func priceString(decimalNumber: NSDecimalNumber, marketDot: Int32) -> String {
         let handler = NSDecimalNumberHandler(roundingMode: .plain, scale: Int16(marketDot), raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: true)
         
@@ -383,15 +407,6 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
         formatter.minimumFractionDigits = Int(marketDot)
         return formatter.string(from: result)!
     }
-//    fileprivate func getMarket {
-//        NSDecimalNumberHandler *roudbe = [NSDecimalNumberHandler decimalNumberHandlerWithRoundingMode:NSRoundPlain scale:marketDot raiseOnExactness:NO raiseOnOverflow:NO raiseOnUnderflow:NO raiseOnDivideByZero:NO];
-//        NSDecimalNumber *aDn = [[NSDecimalNumber alloc] initWithDouble:doubleValue];
-//        NSDecimalNumber *resultD = [aDn decimalNumberByRoundingAccordingToBehavior:roudbe];
-//        NSNumberFormatter *formater = [[NSNumberFormatter alloc] init];
-//        [formater setMinimumIntegerDigits:1];
-//        [formater setMaximumFractionDigits:marketDot];
-//        [formater setMinimumFractionDigits:marketDot];
-//    }
    
     //newAdd
     // 计算绘制位置并绘制文本 edited by Leo
@@ -515,6 +530,7 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
     
     open override func drawExtras(context: CGContext)
     {
+        
     }
     
     open override func drawHighlighted(context: CGContext, indices: [Highlight])

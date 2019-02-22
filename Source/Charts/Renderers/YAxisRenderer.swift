@@ -20,13 +20,13 @@ import CoreGraphics
 @objc(ChartYAxisRenderer)
 open class YAxisRenderer: AxisRendererBase
 {
+    ///newAdd
+    @objc open var isZMCus = false
+
     @objc public init(viewPortHandler: ViewPortHandler, yAxis: YAxis?, transformer: Transformer?)
     {
         super.init(viewPortHandler: viewPortHandler, transformer: transformer, axis: yAxis)
     }
-    
-    ///newAdd
-    @objc open var isZMCus = false
     
     /// draws the y-axis labels to the screen
     open override func renderAxisLabels(context: CGContext)
@@ -187,7 +187,9 @@ open class YAxisRenderer: AxisRendererBase
             
             context.saveGState()
             defer { context.restoreGState() }
-            context.clip(to: self.gridClippingRect)
+
+ 
+//           context.clip(to: self.gridClippingRect)/*newAdd*/
             
             context.setShouldAntialias(yAxis.gridAntialiasEnabled)
             context.setStrokeColor(yAxis.gridColor.cgColor)
@@ -207,6 +209,14 @@ open class YAxisRenderer: AxisRendererBase
             // draw the grid
             for i in 0 ..< positions.count
             {
+                if isZMCus {
+                    if  i==3 || i==0 || i==6 {
+                        context.setLineDash(phase: 0.0, lengths: [])
+                    }else {
+                        context.setLineDash(phase: yAxis.gridLineDashPhase, lengths: yAxis.gridLineDashLengths)
+                    }
+                }
+                
                 drawGridLine(context: context, position: positions[i])
             }
         }
@@ -231,9 +241,15 @@ open class YAxisRenderer: AxisRendererBase
         context: CGContext,
         position: CGPoint)
     {
+        ///newAdd
+        if position.y == viewPortHandler.contentBottom || position.y == viewPortHandler.contentTop {
+            return
+        }
+        
         context.beginPath()
         context.move(to: CGPoint(x: viewPortHandler.contentLeft, y: position.y))
-        context.addLine(to: CGPoint(x: viewPortHandler.contentRight, y: position.y))
+
+        context.addLine(to: CGPoint(x:/*newAdd*/UIScreen.main.bounds.size.width   /*viewPortHandler.contentRight*/, y: position.y))
         context.strokePath()
     }
     
@@ -274,7 +290,7 @@ open class YAxisRenderer: AxisRendererBase
         var clippingRect = viewPortHandler.contentRect
         clippingRect.origin.y -= yAxis.zeroLineWidth / 2.0
         clippingRect.size.height += yAxis.zeroLineWidth
-        context.clip(to: clippingRect)
+//        context.clip(to: clippingRect)/*newAdd*/
 
         context.setStrokeColor(zeroLineColor.cgColor)
         context.setLineWidth(yAxis.zeroLineWidth)
@@ -291,7 +307,7 @@ open class YAxisRenderer: AxisRendererBase
         }
         
         context.move(to: CGPoint(x: viewPortHandler.contentLeft, y: pos.y))
-        context.addLine(to: CGPoint(x: viewPortHandler.contentRight, y: pos.y))
+        context.addLine(to: CGPoint(x:/*newAdd viewPortHandler.contentRight*/ UIScreen.main.bounds.size.width , y: pos.y))
         context.drawPath(using: CGPathDrawingMode.stroke)
     }
     
@@ -330,7 +346,7 @@ open class YAxisRenderer: AxisRendererBase
             var clippingRect = viewPortHandler.contentRect
             clippingRect.origin.y -= l.lineWidth / 2.0
             clippingRect.size.height += l.lineWidth
-            context.clip(to: clippingRect)
+//            context.clip(to: clippingRect)/*newAdd*/
             
             position.x = 0.0
             position.y = CGFloat(l.limit)
@@ -338,7 +354,8 @@ open class YAxisRenderer: AxisRendererBase
             
             context.beginPath()
             context.move(to: CGPoint(x: viewPortHandler.contentLeft, y: position.y))
-            context.addLine(to: CGPoint(x: viewPortHandler.contentRight, y: position.y))
+
+            context.addLine(to: CGPoint(x:/*newAdd*/ UIScreen.main.bounds.size.width, y: position.y))
             
             context.setStrokeColor(l.lineColor.cgColor)
             context.setLineWidth(l.lineWidth)

@@ -13,6 +13,8 @@ import Foundation
 
 open class CandleChartDataEntry: ChartDataEntry
 {
+    //newAdd
+    @objc open var ZMContractName = ""
     /// shadow-high value
     @objc open var high = Double(0.0)
     
