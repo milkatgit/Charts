@@ -22,7 +22,8 @@ open class YAxisRenderer: AxisRendererBase
 {
     ///newAdd
     @objc open var isZMCus = false
-
+    @objc open var ZMLegendCoverSpace :CGFloat = 0.0//legend的高度->解决覆盖问题
+    
     @objc public init(viewPortHandler: ViewPortHandler, yAxis: YAxis?, transformer: Transformer?)
     {
         super.init(viewPortHandler: viewPortHandler, transformer: transformer, axis: yAxis)
@@ -161,12 +162,44 @@ open class YAxisRenderer: AxisRendererBase
                 
             }
             
-            ChartUtils.drawText(
-                context: context,
-                text: text,
-                point: CGPoint(x: fixedPosition, y: positions[i].y + offset),
-                align: textAlign,
-                attributes: [NSAttributedStringKey.font: labelFont, NSAttributedStringKey.foregroundColor: labelTextColor])
+            //[newAdd
+//            let position = positions[i]
+//            let labelLineHeight = labelFont.lineHeight
+//
+//            var xx = position.y + offset // label底部
+//
+//            if xx - viewPortHandler.contentBottom <= 0 && position.y - viewPortHandler.contentTop >= ZMLegendCoverSpace  {
+//                if position.y - viewPortHandler.contentTop < ZMLegendCoverSpace + labelLineHeight {
+//                    xx = ZMLegendCoverSpace
+//                }
+//                ChartUtils.drawText(
+//                    context: context,
+//                    text: text,
+//                    point: CGPoint(x: fixedPosition, y: positions[i].y + offset),
+//                    align: textAlign,
+//                    attributes: [NSAttributedStringKey.font: labelFont, NSAttributedStringKey.foregroundColor:UIColor.cyan /*labelTextColor*/])
+////                ChartUtils.drawText(context: context,
+////                                    text: label,
+////                                    point: CGPoint(
+////                                        x: viewPortHandler.contentLeft + xOffset,
+////                                        y: xx),
+////                                    align: .left,
+////                                    attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
+//            }//]
+            
+            
+            //[newAdd
+//            let p = positions[i].y
+//            if p <= viewPortHandler.contentBottom {
+                ChartUtils.drawText(
+                    context: context,
+                    text: text,
+                    point: CGPoint(x: fixedPosition, y: positions[i].y + offset),
+                    align: textAlign,
+                    attributes: [NSAttributedStringKey.font: labelFont, NSAttributedStringKey.foregroundColor: labelTextColor])
+//            }//]
+            
+            
         }
     }
     
@@ -216,8 +249,14 @@ open class YAxisRenderer: AxisRendererBase
                         context.setLineDash(phase: yAxis.gridLineDashPhase, lengths: yAxis.gridLineDashLengths)
                     }
                 }
+                ///[ newAdd - 等于绘制边框最高或者最低-不绘制
+                let position = positions[i]
+                let _x = fabs(position.y - viewPortHandler.contentTop)// fabsf(fabsf(Float(position.y)) - fabsf(Float(viewPortHandler.contentTop)))
+                let _x2 = fabs(position.y - viewPortHandler.contentBottom)
+                if (position.y != viewPortHandler.contentBottom && position.y != viewPortHandler.contentTop /*&& _x > 0.1 && _x2 > 0.1*/)   {
+                    drawGridLine(context: context, position: positions[i])
+                }///]
                 
-                drawGridLine(context: context, position: positions[i])
             }
         }
 
@@ -241,15 +280,11 @@ open class YAxisRenderer: AxisRendererBase
         context: CGContext,
         position: CGPoint)
     {
-        ///newAdd
-        if position.y == viewPortHandler.contentBottom || position.y == viewPortHandler.contentTop {
-            return
-        }
-        
         context.beginPath()
         context.move(to: CGPoint(x: viewPortHandler.contentLeft, y: position.y))
-
         context.addLine(to: CGPoint(x:/*newAdd*/UIScreen.main.bounds.size.width   /*viewPortHandler.contentRight*/, y: position.y))
+//        context.setStrokeColor(UIColor.yellow.cgColor)
+
         context.strokePath()
     }
     
@@ -346,7 +381,8 @@ open class YAxisRenderer: AxisRendererBase
             var clippingRect = viewPortHandler.contentRect
             clippingRect.origin.y -= l.lineWidth / 2.0
             clippingRect.size.height += l.lineWidth
-//            context.clip(to: clippingRect)/*newAdd*/
+            /*newAdd*/clippingRect.size.width = UIScreen.main.bounds.size.width
+            context.clip(to: clippingRect)
             
             position.x = 0.0
             position.y = CGFloat(l.limit)
@@ -367,8 +403,8 @@ open class YAxisRenderer: AxisRendererBase
             {
                 context.setLineDash(phase: 0.0, lengths: [])
             }
-            
             context.strokePath()
+            
             
             let label = l.label
             
@@ -377,49 +413,61 @@ open class YAxisRenderer: AxisRendererBase
             {
                 let labelLineHeight = l.valueFont.lineHeight
                 
+               
+                
                 let xOffset: CGFloat = 4.0 + l.xOffset
                 let yOffset: CGFloat = l.lineWidth + labelLineHeight + l.yOffset
                 
-                if l.labelPosition == .rightTop
-                {
-                    ChartUtils.drawText(context: context,
-                        text: label,
-                        point: CGPoint(
-                            x: viewPortHandler.contentRight - xOffset,
-                            y: position.y - yOffset),
-                        align: .right,
-                        attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
-                }
-                else if l.labelPosition == .rightBottom
-                {
-                    ChartUtils.drawText(context: context,
-                        text: label,
-                        point: CGPoint(
-                            x: viewPortHandler.contentRight - xOffset,
-                            y: position.y + yOffset - labelLineHeight),
-                        align: .right,
-                        attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
-                }
-                else if l.labelPosition == .leftTop
-                {
-                    ChartUtils.drawText(context: context,
-                        text: label,
-                        point: CGPoint(
-                            x: viewPortHandler.contentLeft + xOffset,
-                            y: position.y - yOffset),
-                        align: .left,
-                        attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
-                }
-                else
-                {
-                    ChartUtils.drawText(context: context,
-                        text: label,
-                        point: CGPoint(
-                            x: viewPortHandler.contentLeft + xOffset,
-                            y: position.y + yOffset - labelLineHeight),
-                        align: .left,
-                        attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
-                }
+                    if l.labelPosition == .rightTop
+                    {
+                        ChartUtils.drawText(context: context,
+                                            text: label,
+                                            point: CGPoint(
+                                                x: viewPortHandler.contentRight - xOffset,
+                                                y: position.y - yOffset),
+                                            align: .right,
+                                            attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
+                    }
+                    else if l.labelPosition == .rightBottom
+                    {
+                        ChartUtils.drawText(context: context,
+                                            text: label,
+                                            point: CGPoint(
+                                                x: viewPortHandler.contentRight - xOffset,
+                                                y: position.y + yOffset - labelLineHeight),
+                                            align: .right,
+                                            attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
+                    }
+                    else if l.labelPosition == .leftTop
+                    {
+                        //[newAdd
+                        var xx = position.y - yOffset // label底部
+//
+                        if xx - viewPortHandler.contentBottom <= 0 && position.y - viewPortHandler.contentTop >= ZMLegendCoverSpace  {
+                            if position.y - viewPortHandler.contentTop < ZMLegendCoverSpace + labelLineHeight {
+                                xx = ZMLegendCoverSpace
+                            }
+                            ChartUtils.drawText(context: context,
+                                                text: label,
+                                                point: CGPoint(
+                                                    x: viewPortHandler.contentLeft + xOffset,
+                                                    y: xx),
+                                                align: .left,
+                                                attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
+                        }//]
+                      
+                    }
+                    else
+                    {
+                        ChartUtils.drawText(context: context,
+                                            text: label,
+                                            point: CGPoint(
+                                                x: viewPortHandler.contentLeft + xOffset,
+                                                y: position.y + yOffset - labelLineHeight),
+                                            align: .left,
+                                            attributes: [NSAttributedStringKey.font: l.valueFont, NSAttributedStringKey.foregroundColor: l.valueTextColor])
+                    }
+                
             }
         }
         

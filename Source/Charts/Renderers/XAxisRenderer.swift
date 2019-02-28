@@ -19,7 +19,7 @@ import CoreGraphics
 @objc(ChartXAxisRenderer)
 open class XAxisRenderer: AxisRendererBase
 {
-    
+    @objc open var isZMNeedClipGridLine = false
     
     @objc public init(viewPortHandler: ViewPortHandler, xAxis: XAxis?, transformer: Transformer?)
     {
@@ -288,7 +288,9 @@ open class XAxisRenderer: AxisRendererBase
         
         context.saveGState()
         defer { context.restoreGState() }
-        context.clip(to: self.gridClippingRect)
+        if isZMNeedClipGridLine {
+            context.clip(to: self.gridClippingRect)
+        }
         
         context.setShouldAntialias(xAxis.gridAntialiasEnabled)
         context.setStrokeColor(xAxis.gridColor.cgColor)
@@ -335,7 +337,7 @@ open class XAxisRenderer: AxisRendererBase
             && x <= viewPortHandler.chartWidth
         {
             context.beginPath()
-            context.move(to: CGPoint(x: x, y: viewPortHandler.contentTop))
+            context.move(to: CGPoint(x: x, y: isZMNeedClipGridLine ? viewPortHandler.contentTop : 0 ))
             context.addLine(to: CGPoint(x: x, y: viewPortHandler.contentBottom))
             context.strokePath()
         }

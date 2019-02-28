@@ -500,13 +500,6 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                         }
                         
                         let val = e.y
-                        
-//                       //newAdd
-//                        if e.ZM_drawLabelText != nil && !(e.ZM_drawLabelText?.isEmpty)!{
-//                            drawValue(context: context, value: e.ZM_drawLabelText!, xPos: x, yPos:  val >= 0.0
-//                                ? (rect.origin.y + posOffset)
-//                                : (rect.origin.y + rect.size.height + negOffset), font: valueFont, align: .center, color: UIColor.green)
-//                        }
                        
                         
                         if dataSet.isDrawValuesEnabled

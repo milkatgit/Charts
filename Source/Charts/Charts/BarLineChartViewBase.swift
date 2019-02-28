@@ -20,9 +20,10 @@ import CoreGraphics
 open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartDataProvider, NSUIGestureRecognizerDelegate
 {
     
-    //newAdd
+    //newAdd[
     @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
-    @objc open var isZMShadow = false
+    @objc open var isZMShadow = false//]
+    
     /// the maximum number of entries to which values will be drawn
     /// (entry numbers greater than this value will cause value-labels to disappear)
     internal var _maxVisibleCount = 100
@@ -115,7 +116,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         stopDeceleration()
     }
     
-
+  
    
     
     internal override func initialize()
@@ -1977,7 +1978,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         getTransformer(forAxis: .left).pixelToValues(&pt)
         
-        return max(xAxis._axisMinimum, Double(pt.x))
+        return ceil(max(xAxis._axisMinimum, Double(pt.x)))
     }
     
     /// - returns: The highest x-index (value on the x-axis) that is still visible on the chart.
@@ -1989,6 +1990,6 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         getTransformer(forAxis: .left).pixelToValues(&pt)
 
-        return min(xAxis._axisMaximum, Double(pt.x))
+        return floor(min(xAxis._axisMaximum, Double(pt.x)))
     }
 }

@@ -23,6 +23,9 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
     @objc open var increaceColor = UIColor.red
     @objc open var decreaceColor = UIColor.red
     @objc open var marketDot = 0
+    var arrowMinMax = "<---"
+    var fontSize = 12
+    
 
     @objc open weak var dataProvider: CandleChartDataProvider?
     
@@ -339,7 +342,7 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
                 p2.y = viewPortHandler.contentBottom
                 p1.y = viewPortHandler.contentBottom - 30
 
-                ChartUtils.drawText(context: context, text: e.ZMContractName, point: CGPoint(x: p1.x, y: p2.y - 13), align: .left, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 12), NSAttributedStringKey.foregroundColor: UIColor.yellow])
+                ChartUtils.drawText(context: context, text: e.ZMContractName, point: CGPoint(x: p1.x, y: p2.y - 13), align: .left, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: CGFloat(fontSize)), NSAttributedStringKey.foregroundColor: UIColor.yellow])
                 
                 path.move(to: p1)
                 path.addLine(to: p2)
@@ -356,6 +359,7 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
         let candleData = dataProvider.candleData
 
         if candleData?.ZM_isDrawMinMax == true {
+           
             // 可见区域最左边的那条数据
             guard let lowestVisbleEntry = dataSet.entryForIndex(_xBounds.min) as? CandleChartDataEntry else {
                 return
@@ -371,30 +375,33 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
             trans.pointValueToPixel(&highestVisblePoint)
             
             // 可见区域中的最小值
-            //        let minValueStr = String.init(format: "%.4f", minValue)
-            
             let minValueStr = self.priceString(decimalNumber: NSDecimalNumber(value: minValue), marketDot: Int32(marketDot))
             
-            var minPoint: CGPoint = CGPoint.init(x: CGFloat(minPositionX), y: CGFloat(minValue * animator.phaseY))
+            var minPoint: CGPoint = CGPoint.init(x: CGFloat(minPositionX - 0.5), y: CGFloat(minValue * animator.phaseY))
+            var minPoint2: CGPoint = CGPoint.init(x: CGFloat(minPositionX + 0.5), y: CGFloat(minValue * animator.phaseY))
+
             // 点转化为像素
             trans.pointValueToPixel(&minPoint)
-            calculateTextPosition(minValueStr, originPoint: &minPoint, lowestVisibleX: lowestVisblePoint.x, highestVisibleX: highestVisblePoint.x, isMaxValue: false)
+            trans.pointValueToPixel(&minPoint2)
+
+            calculateTextPosition(minValueStr, originPoint: &minPoint, originPoint2: &minPoint2, lowestVisibleX: lowestVisblePoint.x, highestVisibleX: highestVisblePoint.x, isMaxValue: false, context: context)
             
             // 可见区域中的最大值
-            //        let maxValueStr = String.init(format: "%.4f", maxValue)
             let maxValueStr = self.priceString(decimalNumber: NSDecimalNumber(value: maxValue), marketDot: Int32(marketDot))
             
-            var maxPoint: CGPoint = CGPoint.init(x: CGFloat(maxPositionX), y: CGFloat(maxValue * animator.phaseY))
+            var maxPoint: CGPoint = CGPoint.init(x: CGFloat(maxPositionX - 0.5), y: CGFloat(maxValue * animator.phaseY))
+            var maxPoint2: CGPoint = CGPoint.init(x: CGFloat(maxPositionX + 0.5), y: CGFloat(maxValue * animator.phaseY))
+
             trans.pointValueToPixel(&maxPoint)
-            calculateTextPosition(maxValueStr, originPoint: &maxPoint, lowestVisibleX: lowestVisblePoint.x, highestVisibleX: highestVisblePoint.x, isMaxValue: true)
+            trans.pointValueToPixel(&maxPoint2)
+
+            calculateTextPosition(maxValueStr, originPoint: &maxPoint, originPoint2: &maxPoint2, lowestVisibleX: lowestVisblePoint.x, highestVisibleX: highestVisblePoint.x, isMaxValue: true, context: context)
+            
+            
         }
        
 
         context.restoreGState()
-    }
-    //newAdd
-    func ZMDrawContractName(e: CandleChartDataEntry) {
-        
     }
     
     func priceString(decimalNumber: NSDecimalNumber, marketDot: Int32) -> String {
@@ -410,36 +417,40 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
    
     //newAdd
     // 计算绘制位置并绘制文本 edited by Leo
-    fileprivate func calculateTextPosition(_ valueText: String, originPoint: inout CGPoint, lowestVisibleX: CGFloat, highestVisibleX: CGFloat, isMaxValue: Bool){
-        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey.font: UIFont.init(name: "PingFang-SC-SemiBold", size: 10) ?? UIColor.red, NSAttributedStringKey.foregroundColor: isMaxValue==true ? increaceColor:decreaceColor]
+    fileprivate func calculateTextPosition(_ valueText: String, originPoint: inout CGPoint,originPoint2: inout CGPoint, lowestVisibleX: CGFloat, highestVisibleX: CGFloat, isMaxValue: Bool,context:CGContext){
+        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: CGFloat(fontSize)) ?? UIColor.red, NSAttributedStringKey.foregroundColor: isMaxValue==true ? increaceColor:decreaceColor]
         
-        let stringText = NSString.init(string: "←\(valueText)")
+        var stringText : String = "2"
+
+        let h = valueText.boundingRect(with: CGSize.init(width: Int(200.0), height: 0), options: .usesLineFragmentOrigin, attributes: attributes, context: nil)
         
-        let textWidth = stringText.boundingRect(with: CGSize.init(width: 0, height: 12), options: .usesLineFragmentOrigin, attributes: attributes, context: nil).width + 2
-        var resultText: NSString?
+        let textHight = h.height
+        
+        var usePoint = originPoint
         
         if isMaxValue {
-            originPoint.y -= 8
+            if originPoint.y-textHight >= viewPortHandler.contentTop {//放到kline上方
+                stringText = "\(valueText)"
+                originPoint2.y -= textHight
+                usePoint = originPoint2
+            }else {
+                stringText = "\(valueText)" + arrowMinMax
+                originPoint.y = viewPortHandler.contentTop - 2.0
+                usePoint = originPoint
+            }
+            
         } else {
-            originPoint.y -= 0
+            if originPoint.y+textHight <= viewPortHandler.contentBottom {//放到kline下方
+                stringText = "\(valueText)"
+                originPoint2.y += 0
+                usePoint = originPoint2
+            }else {
+                stringText = "\(valueText)" + arrowMinMax
+                originPoint.y = viewPortHandler.contentBottom - textHight
+                usePoint = originPoint
+            }
         }
-        if originPoint.x - 10 < lowestVisibleX {
-            originPoint.x += 3
-            resultText = NSString(string: "←" + valueText)
-        }
-        else if originPoint.x - textWidth - 10 < lowestVisibleX {
-            originPoint.x += 3
-            resultText = NSString(string: "←" + valueText)
-        }
-        else if ((originPoint.x + textWidth + 10 >= highestVisibleX) && (highestVisibleX - lowestVisibleX >= textWidth + 3)) {
-            resultText = NSString(string: valueText + "→")
-            originPoint.x -= (textWidth + 2)
-        }
-        else {
-            originPoint.x += 3
-            resultText = NSString(string: "←" + valueText)
-        }
-        resultText?.draw(at: originPoint, withAttributes: attributes)
+        ChartUtils.drawText(context: context, text: stringText, point: usePoint, align: .right, attributes: attributes)
     }
     open override func drawValues(context: CGContext)
     {

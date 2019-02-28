@@ -74,7 +74,7 @@ open class BarLineScatterCandleBubbleRenderer: DataRenderer
                       animator: Animator?)
         {
             let phaseX = Swift.max(0.0, Swift.min(1.0, animator?.phaseX ?? 1.0))
-            
+           
             let low = chart.lowestVisibleX
             let high = chart.highestVisibleX
             
