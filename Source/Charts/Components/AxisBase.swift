@@ -21,6 +21,8 @@ open class AxisBase: ComponentBase
         super.init()
     }
     
+    //newAdd
+    @objc open var ZM_isKlineTimeCJL = false
     /// Custom formatter that is used instead of the auto-formatter if set
     private var _axisValueFormatter: IAxisValueFormatter?
     

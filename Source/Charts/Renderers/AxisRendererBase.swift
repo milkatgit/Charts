@@ -114,7 +114,7 @@ open class AxisRendererBase: Renderer
         }
         
         // Normalize interval
-        let intervalMagnitude = pow(10.0, Double(Int(log10(interval.isNaN ? 1.0 : interval)))).roundedToNextSignficant()
+        let intervalMagnitude = pow(10.0, Double(Int(log10(interval)))).roundedToNextSignficant()
         let intervalSigDigit = Int(interval / intervalMagnitude)
         if intervalSigDigit > 5
         {
@@ -124,6 +124,142 @@ open class AxisRendererBase: Renderer
         }
         
         var n = axis.centerAxisLabelsEnabled ? 1 : 0
+        
+        //newAdd
+//        if axis .isKind(of: YAxis.self) {
+//            if (axis as! YAxis) .ZM_isKlineTimeCJL == true {
+//                var x = NSNotFound
+//                var refCount = 0
+//                
+//                //最大值 1185
+//                var ZMMax = Int(ceil(max / 5.0)) //237.0 -> 237
+//                var ZMMin = Int(ceil(max / 6.0)) //197.5 -> 198
+//                
+//                if ZMMin >= 100 {
+//                    while ZMMin >= 100 {
+//                        refCount += 1
+//                        ZMMax = ZMMax / 10 //  198 -> 19
+//                        ZMMin = ZMMin / 10 //  198 -> 19
+//                    }
+//                    
+//                }else {
+//                    //小于100怎么处理
+//                }
+//                //优先找5的倍数
+//                for i in ZMMin ... ZMMax {
+//                    if i % 5 == 0 {
+//                        x = i
+//                        if i % 10 == 0 {
+//                            x = i
+//                            break
+//                        }
+//                    }
+//                }
+//                //如果没有5的倍数找3的倍数
+//                if x == NSNotFound {
+//                    for i in ZMMin ... ZMMax {
+//                        if i % 3 == 0 {
+//                            x = i
+//                            break
+//                        }
+//                    }
+//                }
+//                
+//                if refCount != 0 {
+//                    for j in 0 ... refCount {
+//                        x *= 10
+//                    }
+//                }
+//                
+//                // Ensure stops contains at least n elements.
+//                axis.entries.removeAll(keepingCapacity: true)
+//                axis.entries.reserveCapacity(5)
+//                
+//                var f = x
+//                var i = 0
+//                while i < 5
+//                {
+//                    if f == Int(0.0)
+//                    {
+//                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
+//                        f = Int(0.0)
+//                    }
+//                    
+//                    axis.entries.append(Double(f))
+//                    
+//                    f += x
+//                    i += 1
+//                }
+//            }
+//        }
+//        else {
+//            
+//            // force label count
+//            if axis.isForceLabelsEnabled
+//            {
+//                interval = Double(range) / Double(labelCount - 1)
+//                
+//                // Ensure stops contains at least n elements.
+//                axis.entries.removeAll(keepingCapacity: true)
+//                axis.entries.reserveCapacity(labelCount)
+//                
+//                var v = yMin
+//                
+//                for _ in 0 ..< labelCount
+//                {
+//                    axis.entries.append(v)
+//                    v += interval
+//                }
+//                
+//                n = labelCount
+//            }
+//            else
+//            {
+//                // no forced count
+//                
+//                var first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
+//                
+//                if axis.centerAxisLabelsEnabled
+//                {
+//                    first -= interval
+//                }
+//                
+//                let last = interval == 0.0 ? 0.0 : (floor(yMax / interval) * interval).nextUp
+//                
+//                if interval != 0.0 && last != first
+//                {
+//                    for _ in stride(from: first, through: last, by: interval)
+//                    {
+//                        n += 1
+//                    }
+//                }
+//                else if last == first && n == 0
+//                {
+//                    n = 1
+//                }
+//                
+//                // Ensure stops contains at least n elements.
+//                axis.entries.removeAll(keepingCapacity: true)
+//                axis.entries.reserveCapacity(labelCount)
+//                
+//                var f = first
+//                var i = 0
+//                while i < n
+//                {
+//                    if f == 0.0
+//                    {
+//                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
+//                        f = 0.0
+//                    }
+//                    
+//                    axis.entries.append(Double(f))
+//                    
+//                    f += interval
+//                    i += 1
+//                }
+//            }
+//        }
+        
         
         // force label count
         if axis.isForceLabelsEnabled
@@ -147,7 +283,7 @@ open class AxisRendererBase: Renderer
         else
         {
             // no forced count
-        
+            
             var first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
             
             if axis.centerAxisLabelsEnabled
@@ -168,7 +304,7 @@ open class AxisRendererBase: Renderer
             {
                 n = 1
             }
-
+            
             // Ensure stops contains at least n elements.
             axis.entries.removeAll(keepingCapacity: true)
             axis.entries.reserveCapacity(labelCount)
@@ -189,7 +325,6 @@ open class AxisRendererBase: Renderer
                 i += 1
             }
         }
-        
         // set decimals
         if interval < 1
         {

@@ -30,6 +30,12 @@ open class YAxis: AxisBase
         case insideChart
     }
     
+   
+//        : Bool {
+//        set { ZM_isKlineTimeCJL = newValue}
+//        get { return ZM_isKlineTimeCJL}
+//    }
+    
     ///  Enum that specifies the axis a DataSet should be plotted against, either Left or Right.
     @objc
     public enum AxisDependency: Int
@@ -37,6 +43,7 @@ open class YAxis: AxisBase
         case left
         case right
     }
+
     
     /// indicates if the bottom y-label entry is drawn or not
     @objc open var drawBottomYLabelEntryEnabled = true
