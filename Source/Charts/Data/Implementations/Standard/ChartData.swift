@@ -20,6 +20,8 @@ open class ChartData: NSObject
     @objc open var ZMisAlways1px = false//bar
     /// 用于candle 是否绘制最高点最低点
     @objc open var ZM_isDrawMinMax = false
+    //newAdd
+    @objc open var ZM_isKlineTimePrice = false
 
     internal var _yMax: Double = -Double.greatestFiniteMagnitude
     internal var _yMin: Double = Double.greatestFiniteMagnitude

@@ -454,66 +454,215 @@ open class LineChartRenderer: LineRadarRenderer
             }
             else {
                 
-                var e1: ChartDataEntry!
-                var e2: ChartDataEntry!
-                
-                e1 = dataSet.entryForIndex(_xBounds.min)
-                
-                if e1 != nil
-                {
-                    context.beginPath()
-                    var firstPoint = true
+                guard
+                    let lineData = dataProvider.lineData
+                    else { return }
+                if lineData.ZM_isKlineTimePrice {
+                    // TODO:分时价格绘制
                     
+                    var e1: ChartDataEntry!
+                    var e2: ChartDataEntry!
                     
-                    for x  in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
+                    e1 = dataSet.entryForIndex(_xBounds.min)
+                    
+                    if e1 != nil
                     {
-                        e1 = dataSet.entryForIndex(x == 0 ? 0 : (x - 1))
+                        context.beginPath()
+//                        var firstPoint = true
                         
-                        e2 = dataSet.entryForIndex(x)
                         
-                        if e1 == nil || e2 == nil { continue }
-                        //newAdd
-                        if e1.data != nil {continue}
-                        if e2.data != nil {continue}
+                        var cycle = -1//default
+                        var isFindStart = false
                         
-                        let pt = CGPoint(
-                            x: CGFloat(e1.x),
-                            y: CGFloat(e1.y * phaseY)
-                            ).applying(valueToPixelMatrix)
                         
-                        if firstPoint
+                        for x  in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
                         {
-                            context.move(to: pt)
-                            firstPoint = false
+                            e1 = dataSet.entryForIndex(x == 0 ? 0 : (x - 1))
+                            e2 = dataSet.entryForIndex(x)
+                          
+//                            let pt = CGPoint(
+//                                x: CGFloat(e1.x),
+//                                y: CGFloat(e1.y * phaseY)
+//                                ).applying(valueToPixelMatrix)
+                            
+                            var cycleThis = x / (e2.cycleCount-1)
+                            if x % e2.cycleCount == 0 {
+                                cycle += 1
+
+                                isFindStart = false
+//                                context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+//                                context.strokePath()
+                            }
+                            if cycle == cycleThis {
+                                if isFindStart == false {
+                                    if e2.y > 0.0 {
+//                                        cycle += 1
+                                        isFindStart = true
+                                        e1 = e2
+//                                        firstPoint = true
+//                                        if cycle != 0 && x != 0 {
+//                                            context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+//                                            context.strokePath()
+//                                        }
+                                        let pt = CGPoint(
+                                            x: CGFloat(e1.x),
+                                            y: CGFloat(e1.y * phaseY)
+                                            ).applying(valueToPixelMatrix)
+                                          context.move(to: pt)
+                                    }else {
+                                        continue
+                                    }
+                                }else {
+                                    if e2.y <= 0 {
+                                        break
+                                    }
+//                                    context.addLine(to: pt)
+                                    context.addLine(to: CGPoint(
+                                        x: CGFloat(e2.x),
+                                        y: CGFloat(e2.y * phaseY)
+                                        ).applying(valueToPixelMatrix))
+//                                    context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+//                                    context.strokePath()
+                                }
+                            }
+//                            if x % e2.cycleCount == 0 {
+//                                isFindStart = false
+////                                context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+////                                context.strokePath()
+//                            }
+//                            if e2.isStartLinePoint == true {
+//                                e1 = e2
+//                                firstPoint = true
+//                            }else if e2.isContinue {
+//                                continue
+//                            }
+//
+//                            let pt = CGPoint(
+//                                x: CGFloat(e1.x),
+//                                y: CGFloat(e1.y * phaseY)
+//                                ).applying(valueToPixelMatrix)
+//
+//                            if firstPoint
+//                            {
+//                                if x != 0 {
+//                                    context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+//                                    context.strokePath()
+//                                }
+////                                print(" \(e2.isStartLinePoint) \(e2.isContinue) \(e2)")
+//                                context.move(to: pt)
+//                                firstPoint = false
+//                            }
+//                            else
+//                            {
+//                                context.addLine(to: pt)
+//
+//                            }
+//
+//                            if isDrawSteppedEnabled
+//                            {
+//                                context.addLine(to: CGPoint(
+//                                    x: CGFloat(e2.x),
+//                                    y: CGFloat(e1.y * phaseY)
+//                                    ).applying(valueToPixelMatrix))
+//                            }
+
+                            //                        print("e2isstar = \(e2.isStartLinePoint)")
+//                            if e2.isStartLinePoint == false && e2.isEndLinePoint == false {//&& e2.isNoDraw == false
+//
+//                                context.addLine(to: CGPoint(
+//                                    x: CGFloat(e2.x),
+//                                    y: CGFloat(e2.y * phaseY)
+//                                    ).applying(valueToPixelMatrix))
+//                            }
+                        
                         }
-                        else
+                        
+//                        if !firstPoint
+//                        {
+                            context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+                            context.strokePath()
+//                        }
+                    }
+                    
+                }else            {
+                    
+                    var e1: ChartDataEntry!
+                    var e2: ChartDataEntry!
+                    
+                    e1 = dataSet.entryForIndex(_xBounds.min)
+                    
+                    if e1 != nil
+                    {
+                        context.beginPath()
+                        var firstPoint = true
+                        
+                        
+                        for x  in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
                         {
-                            context.addLine(to: pt)
+                            e1 = dataSet.entryForIndex(x == 0 ? 0 : (x - 1))
+                            e2 = dataSet.entryForIndex(x)
+                            
+                            //newAdd
+                            if e1 == nil { continue }
+                            if e1.data != nil {continue}
+                            if e2 == nil { continue }
+                            if e2.data != nil {continue}
+                            if e2.isStartLinePoint == true {
+                                e1 = e2
+                                firstPoint = true
+                            }
+                            
+                            let pt = CGPoint(
+                                x: CGFloat(e1.x),
+                                y: CGFloat(e1.y * phaseY)
+                                ).applying(valueToPixelMatrix)
+                            
+                            if firstPoint
+                            {
+                                if x != 0 {
+                                    
+                                    context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+                                    context.strokePath()
+                                }
+                                
+                                context.move(to: pt)
+                                firstPoint = false
+                            }
+                            else
+                            {
+                                context.addLine(to: pt)
+                                
+                            }
+                            
+                            if isDrawSteppedEnabled
+                            {
+                                context.addLine(to: CGPoint(
+                                    x: CGFloat(e2.x),
+                                    y: CGFloat(e1.y * phaseY)
+                                    ).applying(valueToPixelMatrix))
+                            }
+                            
+                            //                        print("e2isstar = \(e2.isStartLinePoint)")
+                            if e2.isStartLinePoint == false && e2.isNoDraw == false {
+                                
+                                context.addLine(to: CGPoint(
+                                    x: CGFloat(e2.x),
+                                    y: CGFloat(e2.y * phaseY)
+                                    ).applying(valueToPixelMatrix))
+                            }
                             
                         }
                         
-                        if isDrawSteppedEnabled
+                        if !firstPoint
                         {
-                            context.addLine(to: CGPoint(
-                                x: CGFloat(e2.x),
-                                y: CGFloat(e1.y * phaseY)
-                                ).applying(valueToPixelMatrix))
+                            context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+                            context.strokePath()
                         }
-                        
-                        context.addLine(to: CGPoint(
-                            x: CGFloat(e2.x),
-                            y: CGFloat(e2.y * phaseY)
-                            ).applying(valueToPixelMatrix))
-                        
                     }
                     
-                    if !firstPoint
-                    {
-                        context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
-                        context.strokePath()
-                    }
                 }
-                
+
+               
             }
             
         }

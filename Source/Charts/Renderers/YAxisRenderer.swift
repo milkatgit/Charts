@@ -215,7 +215,10 @@ open class YAxisRenderer: AxisRendererBase
             for i in 0 ..< positions.count
             {
                 if isZMCus {
-                    if  i==3 || i==0 || i==6 {
+                    let mid = (positions.count - 1) / 2
+                    if i == 0 || i == positions.count - 1 {
+                        continue
+                    }else if  i == mid {//|| i==0 || i==6
                         context.setLineDash(phase: 0.0, lengths: [])
                     }else {
                         context.setLineDash(phase: yAxis.gridLineDashPhase, lengths: yAxis.gridLineDashLengths)
