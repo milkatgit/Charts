@@ -22,7 +22,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     
     //newAdd[
     @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
-    @objc open var isZMShadow = false//]
+    @objc open var ZM_ShadowEndColor:UIColor? = nil//]
     
     /// the maximum number of entries to which values will be drawn
     /// (entry numbers greater than this value will cause value-labels to disappear)
@@ -198,7 +198,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         // execute all drawing commands
         drawGridBackground(context: context)
         
-        if isZMShadow {
+        if ZM_ShadowEndColor != nil {
             drawGradient(context: context)
         }
 
@@ -528,13 +528,13 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     
     internal func drawGradient(context: CGContext) {
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let colors = [UIColor(red: 0, green: 0, blue: 0, alpha: 1).cgColor,UIColor(red: 2/255.0, green: 23/255.0, blue: 48/255.0, alpha: 1).cgColor]
+        let colors = [UIColor(red: 0, green: 0, blue: 0, alpha: 0).cgColor,ZM_ShadowEndColor?.cgColor]
         let locations:[CGFloat] = [0,1]
         
         let gradient = CGGradient(colorsSpace: colorSpace, colors: colors as CFArray, locations: locations)!
         let start = CGPoint(x: 0, y: 0)
-        let end = CGPoint(x: _viewPortHandler.contentRight, y: 0)
-        context.drawLinearGradient(gradient, start: start, end: end, options: .drawsBeforeStartLocation)
+        let end = CGPoint(x: UIScreen.main.bounds.size.width /*_viewPortHandler.contentRight*/, y: 0)
+        context.drawLinearGradient(gradient, start: start, end: end, options: .drawsAfterEndLocation)
     }
     
     // MARK: - Gestures

@@ -28,7 +28,6 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
     @objc public init(dataProvider: BarChartDataProvider, animator: Animator, viewPortHandler: ViewPortHandler)
     {
         super.init(animator: animator, viewPortHandler: viewPortHandler)
-        
         self.dataProvider = dataProvider
     }
     
@@ -319,20 +318,30 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
                 
                 var entryColor = e.ZMColorAndIsFill.count > 0 ? e.ZMColorAndIsFill[0] as! UIColor : nil
                 var entryIsFilled = e.ZMColorAndIsFill.count > 1 ? e.ZMColorAndIsFill[1] as! Bool : nil
-                
+//                var entryColor: UIColor? = nil
+//                if entryColorStr != nil {
+//                    entryColor = UIColor(hex: entryColorStr!)
+//                }
                 if entryColor != nil {
                     if isAlways1px {//宽度为1px时候不需要花边框了
                         context.setFillColor((entryColor?.cgColor)!)
                         context.fill(barRect)
                         
-                        let text = e.ZM_drawLabelText
-                        if text == "多"  {//坐标系问题-未转换
-                            drawArrow(context: context, text: text!, x: barRect.origin.x, y: barRect.origin.y)
+                        if e.ZM_drawLabelText.isEmpty == false {
+                            
+                            let text = e.ZM_drawLabelText[0] as? String
+                            if text == "多"  {//坐标系问题-未转换
+                                let color = e.ZM_drawLabelText[1] as! UIColor
+                                
+                                drawArrow(context: context, text: text!, x: barRect.origin.x, y: barRect.origin.y, color: color)
+                            }
+                            if  text == "空" {//坐标系问题-未转换
+                                let color = e.ZM_drawLabelText[1] as! UIColor
+
+                                drawArrow(context: context, text: text!, x: barRect.origin.x, y: barRect.origin.y + barRect.size.height, color: color)
+                            }
                         }
-                        if  text == "空" {//坐标系问题-未转换
-                            drawArrow(context: context, text: text!, x: barRect.origin.x, y: barRect.origin.y + barRect.size.height)
-                        }
-                        
+
                     }else {
                         context.setStrokeColor((entryColor?.cgColor)!)
                         context.setLineWidth(borderWidth)
@@ -366,7 +375,8 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
         context.restoreGState()
     }
     
-    func drawArrow(context:CGContext , text:String ,x : CGFloat , y : CGFloat) -> Void {
+    
+    func drawArrow(context:CGContext , text:String ,x : CGFloat , y : CGFloat , color: UIColor) -> Void {
         let arrowBottomWidth : CGFloat = 4.0
         let arrowMaxWidth : CGFloat = 10.0
         let arrowHeight : CGFloat = 10.0
@@ -386,7 +396,7 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             
             context.addPath(path)
             context.setLineWidth(1)
-            context.setStrokeColor(UIColor.red.cgColor)
+            context.setStrokeColor(color.cgColor)
             context.strokePath()
         }
         if text == "空" {
@@ -401,7 +411,7 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             
             context.addPath(path)
             context.setLineWidth(1)
-            context.setStrokeColor(UIColor.green.cgColor)
+            context.setStrokeColor(color.cgColor)
             context.strokePath()
         }
     }
@@ -773,4 +783,51 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
     {
         high.setDraw(x: barRect.midX, y: barRect.origin.y)
     }
+}
+
+extension UIColor {
+    // Hex String -> UIColor
+    convenience init(hex: String) {
+        let hexString = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        let scanner = Scanner(string: hexString)
+        
+        if hexString.hasPrefix("#") {
+            scanner.scanLocation = 1
+        }
+        
+        var color: UInt32 = 0
+        scanner.scanHexInt32(&color)
+        
+        let mask = 0x000000FF
+        let r = Int(color >> 16) & mask
+        let g = Int(color >> 8) & mask
+        let b = Int(color) & mask
+        
+        let red   = CGFloat(r) / 255.0
+        let green = CGFloat(g) / 255.0
+        let blue  = CGFloat(b) / 255.0
+        
+        self.init(red: red, green: green, blue: blue, alpha: 0.5)
+    }
+    
+    
+//    convenience init(hex: String) {
+//        let scanner = Scanner(string: hex)
+//        scanner.scanLocation = 0
+//
+//        var rgbValue: UInt64 = 0
+//
+//        scanner.scanHexInt64(&rgbValue)
+//
+//        let r = (rgbValue & 0xff0000) >> 16
+//        let g = (rgbValue & 0xff00) >> 8
+//        let b = rgbValue & 0xff
+//
+//        self.init(
+//            red: CGFloat(r) / 0xff,
+//            green: CGFloat(g) / 0xff,
+//            blue: CGFloat(b) / 0xff, alpha: 1
+//        )
+//    }
+
 }
