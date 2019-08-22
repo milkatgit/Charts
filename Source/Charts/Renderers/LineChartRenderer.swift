@@ -579,7 +579,15 @@ open class LineChartRenderer: LineRadarRenderer
                         
 //                        if !firstPoint
 //                        {
-                            context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
+                        let zcolor = dataSet.color(atIndex: 0)
+                        var zzcolor: NSUIColor? = nil
+                        
+                        if zcolor is NSUIColor {
+                            zzcolor = zcolor
+                        }else {
+                            zzcolor = UIColor(hex: zcolor as! String)
+                        }
+                            context.setStrokeColor(zzcolor!.cgColor)
                             context.strokePath()
 //                        }
                     }
@@ -796,20 +804,23 @@ open class LineChartRenderer: LineRadarRenderer
                         continue
                     }
                     //newAdd
-                    if e.ZM_drawLabelText != nil && !(e.ZM_drawLabelText?.isEmpty)!{
-                        ChartUtils.drawText(
-                            context: context,
-                            text: e.ZM_drawLabelText!,
-                            point: CGPoint(
-                                x: pt.x,
-                                y: pt.y - CGFloat(valOffset) - valueFont.lineHeight),
-                            align: .center,
-                            attributes: [NSAttributedStringKey.font: valueFont, NSAttributedStringKey.foregroundColor: UIColor.yellow])
-
-//                        drawValue(context: context, value: e.ZM_drawLabelText!, xPos: x, yPos:  val >= 0.0
-//                            ? (rect.origin.y + posOffset)
-//                            : (rect.origin.y + rect.size.height + negOffset), font: valueFont, align: .center, color: UIColor.green)
+                    if e.ZM_drawLabelText.isEmpty == false {
+                        let text = e.ZM_drawLabelText[0] as! String
+                        
+                        if text.isEmpty == false {
+                            let color = e.ZM_drawLabelText[1]
+                            ChartUtils.drawText(
+                                context: context,
+                                text: text,
+                                point: CGPoint(
+                                    x: pt.x,
+                                    y: pt.y - CGFloat(valOffset) - valueFont.lineHeight),
+                                align: .center,
+                                attributes: [NSAttributedStringKey.font: valueFont, NSAttributedStringKey.foregroundColor: color])
+                            
+                        }
                     }
+                    
                     
                     if dataSet.isDrawValuesEnabled {
                         ChartUtils.drawText(
