@@ -22,6 +22,9 @@ open class YAxisRenderer: AxisRendererBase
 {
     ///newAdd
     @objc open var isZMCus = false//分时图主图
+    @objc open var isZMCus_increaseColor:UIColor? = UIColor.white //增
+    @objc open var isZMCus_decreaseColor:UIColor? = UIColor.white //减
+    @objc open var isZMCus_normalColor:UIColor? = UIColor.white //平
     
     @objc public init(viewPortHandler: ViewPortHandler, yAxis: YAxis?, transformer: Transformer?)
     {
@@ -153,13 +156,13 @@ open class YAxisRenderer: AxisRendererBase
             //newAdd
             if isZMCus == true {
                 if i == 3 {
-                    labelTextColor = UIColor.white
+                    labelTextColor = isZMCus_normalColor!
                 }else {
                     if i < 3{
-                        labelTextColor = UIColor.init(red: 0, green: 1, blue: 0, alpha: 1)
+                        labelTextColor = isZMCus_decreaseColor!
                     }
                     else {
-                        labelTextColor = UIColor.init(red: 1, green: 0, blue: 0, alpha: 1)
+                        labelTextColor = isZMCus_increaseColor!
                     }
                 }
                 
