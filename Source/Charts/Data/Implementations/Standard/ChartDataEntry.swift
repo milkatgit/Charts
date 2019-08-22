@@ -15,7 +15,8 @@ open class ChartDataEntry: ChartDataEntryBase
 {
     //newAdd
     /// 传入text 天眼2号根据text绘制对应的箭头
-    @objc open var ZM_drawLabelText : String?
+    @objc open var ZM_drawLabelText : [Any] = []
+    
     /// 传入一个(颜色,是否填充)数组 用于bar
     @objc open var ZMColorAndIsFill : [Any] = []
     /// the x value
