@@ -14,6 +14,7 @@ import Foundation
 open class BarChartDataEntry: ChartDataEntry
 {
     //newAdd
+//    @objc open var ZM_drawLabelText : String?
 //    @objc open var ZM_barColor : UIColor = UIColor.black
 //    @objc open var ZM_barColor_isSame : Bool = true
 //    @objc open var ZM_barColor_macd : UIColor = UIColor.black
