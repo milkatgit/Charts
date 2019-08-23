@@ -19,6 +19,7 @@ import CoreGraphics
 @objc(ChartAnimatorDelegate)
 public protocol AnimatorDelegate
 {
+    
     /// Called when the Animator has stepped.
     func animatorUpdated(_ animator: Animator)
     
