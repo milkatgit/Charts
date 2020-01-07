@@ -290,9 +290,9 @@ open class YAxisRenderer: AxisRendererBase
                 //            positions.append(p)
                 transformer.pointValueToPixel(&p)
                 let lineH = yAxis.labelFont.lineHeight
-                if p.y - lineH >= viewPortHandler.contentTop && p.y <= viewPortHandler.contentBottom{
+//                if p.y - lineH >= viewPortHandler.contentTop && p.y <= viewPortHandler.contentBottom{
                     positions.append(p)
-                }
+//                }
             }
         }
         return positions

@@ -15,6 +15,9 @@ import CoreGraphics
 
 open class ChartBaseDataSet: NSObject, IChartDataSet
 {
+    //newAdd
+    public var cycleCount_klineTime: Int = 0
+    
     
     public required override init()
     {
@@ -78,6 +81,7 @@ open class ChartBaseDataSet: NSObject, IChartDataSet
     {
         fatalError("entryCount is not implemented in ChartBaseDataSet")
     }
+    
         
     open func entryForIndex(_ i: Int) -> ChartDataEntry?
     {

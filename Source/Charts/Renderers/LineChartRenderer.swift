@@ -477,7 +477,12 @@ open class LineChartRenderer: LineRadarRenderer
                         
                         for x  in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
                         {
-                            e1 = dataSet.entryForIndex(x == 0 ? 0 : (x - 1))
+                            let cycleCount = dataSet.cycleCount_klineTime
+                            
+                            var cycleThis = x / cycleCount //(e2.cycleCount-1)
+                            
+                            //假设分时第一天数据时从第一条开始的
+                            e1 = dataSet.entryForIndex(x % cycleCount == 0 ? x : (x - 1))
                             e2 = dataSet.entryForIndex(x)
                           
 //                            let pt = CGPoint(
@@ -485,8 +490,7 @@ open class LineChartRenderer: LineRadarRenderer
 //                                y: CGFloat(e1.y * phaseY)
 //                                ).applying(valueToPixelMatrix)
                             
-                            var cycleThis = x / (e2.cycleCount-1)
-                            if x % e2.cycleCount == 0 {
+                            if x % cycleCount == 0 {
                                 cycle += 1
 
                                 isFindStart = false
@@ -495,10 +499,10 @@ open class LineChartRenderer: LineRadarRenderer
                             }
                             if cycle == cycleThis {
                                 if isFindStart == false {
-                                    if e2.y > 0.0 {
+                                    if e2.data == nil {
 //                                        cycle += 1
                                         isFindStart = true
-                                        e1 = e2
+                                        e1 = e2//真正的起点
 //                                        firstPoint = true
 //                                        if cycle != 0 && x != 0 {
 //                                            context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
@@ -513,14 +517,13 @@ open class LineChartRenderer: LineRadarRenderer
                                         continue
                                     }
                                 }else {
-                                    if e2.y <= 0 {
-                                        break
+                                    if e2.data == nil {
+                                        context.addLine(to: CGPoint(
+                                            x: CGFloat(e2.x),
+                                            y: CGFloat(e2.y * phaseY)
+                                        ).applying(valueToPixelMatrix))
                                     }
 //                                    context.addLine(to: pt)
-                                    context.addLine(to: CGPoint(
-                                        x: CGFloat(e2.x),
-                                        y: CGFloat(e2.y * phaseY)
-                                        ).applying(valueToPixelMatrix))
 //                                    context.setStrokeColor(dataSet.color(atIndex: 0).cgColor)
 //                                    context.strokePath()
                                 }
@@ -615,10 +618,11 @@ open class LineChartRenderer: LineRadarRenderer
                             if e1.data != nil {continue}
                             if e2 == nil { continue }
                             if e2.data != nil {continue}
-                            if e2.isStartLinePoint == true {
-                                e1 = e2
-                                firstPoint = true
-                            }
+                           
+//                            if e2.isStartLinePoint == true {
+//                                e1 = e2
+//                                firstPoint = true
+//                            }
                             
                             let pt = CGPoint(
                                 x: CGFloat(e1.x),
@@ -651,13 +655,13 @@ open class LineChartRenderer: LineRadarRenderer
                             }
                             
                             //                        print("e2isstar = \(e2.isStartLinePoint)")
-                            if e2.isStartLinePoint == false && e2.isNoDraw == false {
+//                            if e2.isStartLinePoint == false && e2.isNoDraw == false {
                                 
                                 context.addLine(to: CGPoint(
                                     x: CGFloat(e2.x),
                                     y: CGFloat(e2.y * phaseY)
                                     ).applying(valueToPixelMatrix))
-                            }
+//                            }
                             
                         }
                         

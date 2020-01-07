@@ -15,6 +15,11 @@ import CoreGraphics
 @objc(ChartAxisRendererBase)
 open class AxisRendererBase: Renderer
 {
+    //newAdd[
+    
+    /// 设置这个值为自己加的legeng高度 防止刻度label覆盖legend
+    @objc open var ZM_TopSpace:CGFloat = 0.0
+    //]
     /// base axis this axis renderer works with
     @objc open var axis: AxisBase?
     
@@ -62,6 +67,14 @@ open class AxisRendererBase: Renderer
         
         if let transformer = self.transformer
         {
+            //newAdd[
+            if ZM_TopSpace != 0.0 {
+                let space = ZM_TopSpace
+                let labelH = axis?.labelFont.lineHeight ?? 0.0
+                
+                let p = transformer.valueForTouchPoint(CGPoint(x: viewPortHandler.contentLeft, y: space+labelH))
+                max = Double(p.y)
+            }//]
             // calculate the starting and entry point of the y-labels (depending on zoom / contentrect bounds)
             if viewPortHandler.contentWidth > 10.0 && !viewPortHandler.isFullyZoomedOutY
             {

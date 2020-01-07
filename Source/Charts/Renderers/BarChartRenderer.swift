@@ -311,7 +311,7 @@ open class BarChartRenderer: BarLineScatterCandleBubbleRenderer
             let isAlways1px = barData.ZMisAlways1px
             if isAlways1px {
                 barRect.origin.x += barRect.size.width / 2 - 0.5
-                barRect.size.width = 1
+                barRect.size.width = 1.5 / UIScreen.main.scale
             }
             
             if barData.ZMisUseEntryColor == true {

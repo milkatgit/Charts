@@ -25,12 +25,12 @@ open class ChartDataEntry: ChartDataEntryBase
     @objc open var isStartLinePoint = false
     /// 以这个点为终点画线
     @objc open var isEndLinePoint = false
-    /// 一日分时有多少分钟
-    @objc open var cycleCount = 0
-    /// 互惠这个点/不绘制
-    @objc open var isContinue = false
-    /// 为true 不绘制这个点
-    @objc open var isNoDraw = false
+//    /// 一日分时有多少分钟
+//    @objc open var cycleCount = 0
+//    /// 互惠这个点/不绘制
+//    @objc open var isContinue = false
+//    /// 为true 不绘制这个点
+//    @objc open var isNoDraw = false
     public required init()
     {
         super.init()

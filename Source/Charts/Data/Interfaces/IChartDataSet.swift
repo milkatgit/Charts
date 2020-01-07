@@ -16,6 +16,8 @@ import CoreGraphics
 public protocol IChartDataSet
 {
     // MARK: - Data functions and accessors
+    //newAdd
+    var cycleCount_klineTime: Int { get }
     
     /// Use this method to tell the data set that the underlying data has changed
     func notifyDataSetChanged()
