@@ -20,6 +20,7 @@ import CoreGraphics
 open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartDataProvider, NSUIGestureRecognizerDelegate
 {
     
+    
     //newAdd[
     @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
     @objc open var ZM_ShadowEndColor:UIColor? = nil//]
