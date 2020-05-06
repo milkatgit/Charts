@@ -89,6 +89,7 @@ open class BubbleChartRenderer: BarLineScatterCandleBubbleRenderer
         for j in stride(from: _xBounds.min, through: _xBounds.range + _xBounds.min, by: 1)
         {
             guard let entry = dataSet.entryForIndex(j) as? BubbleChartDataEntry else { continue }
+            guard let bubbleData = dataProvider.bubbleData else { return }
             
             _pointBuffer.x = CGFloat(entry.x)
             _pointBuffer.y = CGFloat(entry.y * phaseY)
@@ -105,8 +106,17 @@ open class BubbleChartRenderer: BarLineScatterCandleBubbleRenderer
 
             guard viewPortHandler.isInBoundsRight(_pointBuffer.x - shapeHalf) else { break }
             
-            let color = dataSet.color(atIndex: j)
-            
+            var color: UIColor!
+            if bubbleData.ZMisUseEntryColor == true {
+//                color = dataSet.color(atIndex: j)
+                if !entry.ZMColorAndIsFill.isEmpty {
+                    color = entry.ZMColorAndIsFill.first! as! UIColor
+                }else {
+                    color = .red//默认
+                }
+            }else {
+                color = dataSet.color(atIndex: j)
+            }
             let rect = CGRect(
                 x: _pointBuffer.x - shapeHalf,
                 y: _pointBuffer.y - shapeHalf,
