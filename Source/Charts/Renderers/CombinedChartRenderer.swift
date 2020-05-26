@@ -35,7 +35,13 @@ open class CombinedChartRenderer: DataRenderer
         createRenderers()
     }
 
-    
+    //newAdd - candleRender
+    func copyProportys(render:DataRenderer) {
+        render.increaceColor = increaceColor
+        render.decreaceColor = decreaceColor
+        render.valueFontSize = valueFontSize
+        render.marketDot = marketDot
+    }
     /// Creates the renderers needed for this combined-renderer in the required order. Also takes the DrawOrder into consideration.
     internal func createRenderers()
     {
@@ -64,7 +70,9 @@ open class CombinedChartRenderer: DataRenderer
             case .candle:
                 if chart.candleData !== nil
                 {
-                    _renderers.append(CandleStickChartRenderer(dataProvider: chart, animator: animator, viewPortHandler: viewPortHandler))
+                    let candleRender = CandleStickChartRenderer(dataProvider: chart, animator: animator, viewPortHandler: viewPortHandler)
+                    copyProportys(render: candleRender)
+                    _renderers.append(candleRender)
                 }
                 break
                 

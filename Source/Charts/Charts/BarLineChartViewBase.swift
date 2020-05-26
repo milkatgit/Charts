@@ -360,7 +360,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                 max: _xAxis._axisMaximum,
                 inverted: false)
 
-            if _legend !== nil
+            if _legend !== nil && _legend.enabled == true//????为什么不加上这个?
             {
                 legendRenderer?.computeLegend(data: data)
             }
@@ -880,6 +880,51 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         // Did we managed to actually drag or did we reach the edge?
         return matrix.tx != originalMatrix.tx || matrix.ty != originalMatrix.ty
     }
+    var cache:CGFloat = 0.0
+    
+    @objc open func performPanChange(translation: CGPoint,candleWidth:CGFloat) -> Bool
+    {
+        var translation = translation
+        
+        let originalMatrix = _viewPortHandler.touchMatrix
+    
+        
+        if (abs(cache) < candleWidth) {
+            cache += translation.x
+        }else {
+            
+            let count = abs(cache) / candleWidth
+            let x = cache > 0 ? count * candleWidth : -count * candleWidth
+//            var matrix:CGAffineTransform?
+            var matrix = CGAffineTransform(translationX: x, y: translation.y)
+            matrix = originalMatrix.concatenating(matrix)
+            matrix = _viewPortHandler.refresh(newMatrix: matrix, chart: self, invalidate: true)
+            cache -= x
+            if delegate !== nil
+            {
+                delegate?.chartTranslated?(self, dX: x, dY: translation.y)
+            }
+            return matrix.tx != originalMatrix.tx || matrix.ty != originalMatrix.ty
+        }
+            return false
+    }
+//    - (BOOL)performPanChange:(CGPoint)translation chart:(CombinedChartView *)chart{
+//        CGAffineTransform originalMatrix = chart.viewPortHandler.touchMatrix;
+//        NSInteger candleWidth = [self getCurrentCandleNum];
+//        CGAffineTransform matrix;
+//        if (self.cache < candleWidth) {
+//            self.cache += translation.x;
+//        }else {
+//
+//            NSInteger count = self.cache / candleWidth;
+//            CGFloat x = count * candleWidth;
+//            matrix = CGAffineTransformMakeTranslation(x, translation.y);
+//            matrix = CGAffineTransformConcat(originalMatrix, matrix);
+//            matrix = [chart.viewPortHandler refreshWithNewMatrix:matrix chart:chart invalidate:true];
+//            self.cache = 0;
+//        }
+//        return matrix.tx != originalMatrix.tx || matrix.ty != originalMatrix.ty;
+//    }
     
     private func isTouchInverted() -> Bool
     {

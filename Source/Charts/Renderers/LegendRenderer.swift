@@ -19,9 +19,13 @@ import CoreGraphics
 @objc(ChartLegendRenderer)
 open class LegendRenderer: Renderer
 {
+//    var legend_font_record: UIFont!
+//    var legend_xEntrySpace_record: CGFloat!
+    
     /// the legend object this renderer renders
     @objc open var legend: Legend?
 
+    
     @objc public init(viewPortHandler: ViewPortHandler, legend: Legend?)
     {
         super.init(viewPortHandler: viewPortHandler)
@@ -197,8 +201,18 @@ open class LegendRenderer: Renderer
         {
             return
         }
-        
-        let labelFont = legend.font
+        var labelFont = legend.font
+        var xEntrySpace = legend.xEntrySpace
+        if legend.isAutoScaleFontOneLine {
+            if legend.scaleType == .cutSpace {
+                xEntrySpace = legend.xEntrySpace_cus
+            }
+            if legend.scaleType == .scale {
+                xEntrySpace = legend.xEntrySpace_cus
+                labelFont = legend.font_cus
+            }
+        }
+//        let labelFont = legend.isAutoScaleFontOneLine ? legend.font_cus : legend.font
         let labelTextColor = legend.textColor
         let labelLineHeight = labelFont.lineHeight
         let formYOffset = labelLineHeight / 2.0
@@ -207,7 +221,7 @@ open class LegendRenderer: Renderer
         
         let defaultFormSize = legend.formSize
         let formToTextSpace = legend.formToTextSpace
-        let xEntrySpace = legend.xEntrySpace
+//        let xEntrySpace = legend.isAutoScaleFontOneLine ? legend.xEntrySpace_cus : legend.xEntrySpace
         let yEntrySpace = legend.yEntrySpace
         
         let orientation = legend.orientation
@@ -318,12 +332,13 @@ open class LegendRenderer: Renderer
                 let drawingForm = e.form != .none
                 let formSize = e.formSize.isNaN ? defaultFormSize : e.formSize
                 
-                if i < calculatedLabelBreakPoints.count &&
-                    calculatedLabelBreakPoints[i]
-                {
-                    posX = originPosX
-                    posY += labelLineHeight + yEntrySpace
-                }
+                    if i < calculatedLabelBreakPoints.count &&
+                        calculatedLabelBreakPoints[i]
+                    {
+                        posX = originPosX
+                        posY += labelLineHeight + yEntrySpace
+                    }
+                
                 
                 if posX == originPosX &&
                     horizontalAlignment == .center &&
@@ -369,13 +384,15 @@ open class LegendRenderer: Renderer
                         posX -= calculatedLabelSizes[i].width
                     }
                     
+                    
+                    //newAdd
                     drawLabel(
                         context: context,
                         x: posX,
                         y: posY,
                         label: e.label!,
                         font: labelFont,
-                        textColor: labelTextColor)
+                        textColor: e.formColor ?? labelTextColor)//labelTextColor
                     
                     if direction == .leftToRight
                     {

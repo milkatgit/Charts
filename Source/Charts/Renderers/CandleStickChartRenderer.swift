@@ -20,12 +20,8 @@ import CoreGraphics
 open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
 {
     //newAdd
-    @objc open var increaceColor = UIColor.red
-    @objc open var decreaceColor = UIColor.red
-    @objc open var marketDot = 0
     var arrowMinMax = "<---"
-    var fontSize = 12
-    
+
 
     @objc open weak var dataProvider: CandleChartDataProvider?
     
@@ -342,7 +338,7 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
                 p2.y = viewPortHandler.contentBottom
                 p1.y = viewPortHandler.contentBottom - 30
 
-                ChartUtils.drawText(context: context, text: e.ZMContractName, point: CGPoint(x: p1.x, y: p2.y - 13), align: .left, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: CGFloat(fontSize)), NSAttributedStringKey.foregroundColor: UIColor.yellow])
+                ChartUtils.drawText(context: context, text: e.ZMContractName, point: CGPoint(x: p1.x, y: p2.y - 13), align: .left, attributes: [NSAttributedStringKey.font: self.valueFontSize, NSAttributedStringKey.foregroundColor: UIColor.yellow])
                 
                 path.move(to: p1)
                 path.addLine(to: p2)
@@ -418,7 +414,7 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
     //newAdd
     // 计算绘制位置并绘制文本 edited by Leo
     fileprivate func calculateTextPosition(_ valueText: String, originPoint: inout CGPoint,originPoint2: inout CGPoint, lowestVisibleX: CGFloat, highestVisibleX: CGFloat, isMaxValue: Bool,context:CGContext){
-        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: CGFloat(fontSize)) ?? UIColor.red, NSAttributedStringKey.foregroundColor: isMaxValue==true ? increaceColor:decreaceColor]
+        let attributes: [NSAttributedStringKey : Any] = [NSAttributedStringKey.font: self.valueFontSize ?? UIColor.red, NSAttributedStringKey.foregroundColor: isMaxValue==true ? self.increaceColor:self.decreaceColor]
         
         var stringText : String = "2"
 

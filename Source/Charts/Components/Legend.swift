@@ -20,6 +20,7 @@ import CoreGraphics
 open class Legend: ComponentBase
 {
     @objc(ChartLegendForm)
+        
     public enum Form: Int
     {
         /// Avoid drawing a form
@@ -70,10 +71,10 @@ open class Legend: ComponentBase
         case leftToRight
         case rightToLeft
     }
-    
     /// The legend entries array
     @objc open var entries = [LegendEntry]()
-    
+    //newAdd
+    @objc open var isAutoScaleFontOneLine = true
     /// Entries that will be appended to the end of the auto calculated entries after calculating the legend.
     /// (if the legend has already been calculated, you will need to call notifyDataSetChanged() to let the changes take effect)
     @objc open var extraEntries = [LegendEntry]()
@@ -102,6 +103,7 @@ open class Legend: ComponentBase
     @objc open var direction: Direction = Direction.leftToRight
 
     @objc open var font: NSUIFont = NSUIFont.systemFont(ofSize: 10.0)
+    @objc open var font_cus: NSUIFont = NSUIFont.systemFont(ofSize: 10.0)
     @objc open var textColor = NSUIColor.black
 
     /// The form/shape of the legend forms
@@ -126,6 +128,7 @@ open class Legend: ComponentBase
     @objc open var formLineDashLengths: [CGFloat]?
     
     @objc open var xEntrySpace = CGFloat(6.0)
+    @objc open var xEntrySpace_cus = CGFloat(6.0)
     @objc open var yEntrySpace = CGFloat(0.0)
     @objc open var formToTextSpace = CGFloat(5.0)
     @objc open var stackSpace = CGFloat(3.0)
@@ -200,6 +203,8 @@ open class Legend: ComponentBase
     /// if this is set, then word wrapping the legend is enabled.
     @objc open var isWordWrapEnabled: Bool { return wordWrapEnabled }
 
+    open var scaleType:scaleFontType = .not
+    
     /// The maximum relative size out of the whole chart view in percent.
     /// If the legend is to the right/left of the chart, then this affects the width of the legend.
     /// If the legend is to the top/bottom of the chart, then this affects the height of the legend.
@@ -217,7 +222,7 @@ open class Legend: ComponentBase
         let yEntrySpace = self.yEntrySpace
         let wordWrapEnabled = self.wordWrapEnabled
         let entries = self.entries
-        let entryCount = entries.count
+        var entryCount = entries.count
         
         textWidthMax = maxEntrySize.width
         textHeightMax = maxEntrySize.height
@@ -298,7 +303,7 @@ open class Legend: ComponentBase
             
             let labelLineHeight = labelFont.lineHeight
             
-            let contentWidth: CGFloat = viewPortHandler.contentWidth * maxSizePercent
+            let contentWidth: CGFloat = UIScreen.main.bounds.size.width * maxSizePercent//viewPortHandler.contentWidth
             
             // Prepare arrays for calculated layout
             if calculatedLabelSizes.count != entryCount
@@ -315,17 +320,46 @@ open class Legend: ComponentBase
             
             // Start calculating layout
             
-            let labelAttrs = [NSAttributedStringKey.font: labelFont]
+            var labelAttrs = [NSAttributedStringKey.font: labelFont]
             var maxLineWidth: CGFloat = 0.0
             var currentLineWidth: CGFloat = 0.0
             var requiredWidth: CGFloat = 0.0
             var stackedStartIndex: Int = -1
+            
+//            var type:scaleFontType = .not
+            
+            if isAutoScaleFontOneLine == true {
+                //entryCount > 3 有可能超出边界
+                let tuple = isNeedScaleOrCutSpace(contentWidth: contentWidth)
+                scaleType = entryCount > 3 ? tuple.type : .not
+                if scaleType == .scale {
+                    let width = tuple.width
+                    let font = UIFont.systemFont(ofSize:labelFont.pointSize * (width/contentWidth)*1)
+                    self.font_cus = font
+                    self.xEntrySpace_cus = 0.0
+                    labelAttrs = [NSAttributedStringKey.font: font]
+                }
+            }
+            for i in 0 ..< entryCount
+            {
+                let e = entries[i]
+                let label = e.label
+                if label == nil {
+                    entryCount = i
+                    break
+                }
+            }
             
             for i in 0 ..< entryCount
             {
                 let e = entries[i]
                 let drawingForm = e.form != .none
                 let label = e.label
+                
+                //newAdd
+//                if label == nil {
+//                    continue
+//                }
                 
                 calculatedLabelBreakPoints[i] = false
                 
@@ -361,26 +395,37 @@ open class Legend: ComponentBase
                 
                 if label != nil || i == entryCount - 1
                 {
-                    let requiredSpacing = currentLineWidth == 0.0 ? 0.0 : xEntrySpace
+                    var requiredSpacing:CGFloat = 0.0
                     
-                    if (!wordWrapEnabled || // No word wrapping, it must fit.
-                        currentLineWidth == 0.0 || // The line is empty, it must fit.
-                        (contentWidth - currentLineWidth >= requiredSpacing + requiredWidth)) // It simply fits
-                    {
+                    if scaleType == .cutSpace {
                         // Expand current line
-                        currentLineWidth += requiredSpacing + requiredWidth
+//                        requiredSpacing = 0.0
+                        currentLineWidth += requiredWidth
+                    }else if scaleType == .scale {
+//                        requiredSpacing = 0.0
+                        currentLineWidth += requiredWidth
+                    }else {
+                        requiredSpacing = currentLineWidth == 0.0 ? 0.0 : xEntrySpace
+                        if (!wordWrapEnabled || // No word wrapping, it must fit.
+                            currentLineWidth == 0.0 || // The line is empty, it must fit.
+                            (contentWidth - currentLineWidth >= requiredSpacing + requiredWidth)) // It simply fits
+                        {
+                            // Expand current line
+                            currentLineWidth += requiredSpacing + requiredWidth
+                        }
+                        else
+                        { // It doesn't fit, we need to wrap a line
+                            
+                            // Add current line size to array
+                            calculatedLineSizes.append(CGSize(width: currentLineWidth, height: labelLineHeight))
+                            maxLineWidth = max(maxLineWidth, currentLineWidth)
+                            
+                            // Start a new line
+                            calculatedLabelBreakPoints[stackedStartIndex > -1 ? stackedStartIndex : i] = true
+                            currentLineWidth = requiredWidth
+                        }
                     }
-                    else
-                    { // It doesn't fit, we need to wrap a line
-                        
-                        // Add current line size to array
-                        calculatedLineSizes.append(CGSize(width: currentLineWidth, height: labelLineHeight))
-                        maxLineWidth = max(maxLineWidth, currentLineWidth)
-                        
-                        // Start a new line
-                        calculatedLabelBreakPoints[stackedStartIndex > -1 ? stackedStartIndex : i] = true
-                        currentLineWidth = requiredWidth
-                    }
+                    
                     
                     if i == entryCount - 1
                     { // Add last line size to array
@@ -401,6 +446,39 @@ open class Legend: ComponentBase
         neededHeight += yOffset
     }
     
+    func isNeedScaleOrCutSpace(contentWidth:CGFloat) -> (type:scaleFontType,width:CGFloat) {
+        var width:CGFloat = 0.0
+        var type:scaleFontType!
+        
+        let entryCount = self.entries.count
+        let labelFont = self.font
+        let labelAttrs = [NSAttributedStringKey.font: labelFont]
+        var spaceCount = 0
+        
+        for i in 0..<entryCount {
+            let e = self.entries[i]
+            let label = e.label
+            if label != nil
+            {
+                spaceCount += 1
+                calculatedLabelSizes[i] = (label! as NSString).size(withAttributes: labelAttrs)
+                width += calculatedLabelSizes[i].width
+            }
+        }
+        if width + CGFloat(spaceCount) * self.xEntrySpace  > contentWidth {
+            if width > contentWidth {
+                return (.scale,width - CGFloat(spaceCount) * self.xEntrySpace)
+            }
+            return (.cutSpace,width)
+        }
+        return (.none,width)
+    }
+    public enum scaleFontType {
+        case not
+        case none
+        case cutSpace
+        case scale
+    }
     /// MARK: - Custom legend
     
     /// Sets a custom legend's entries array.

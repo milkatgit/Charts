@@ -16,8 +16,10 @@ import CoreGraphics
 open class DataRenderer: Renderer
 {
     //newAdd
-//    @objc open var isZMCus = false;//改变bar类型的柱子颜色
-
+    @objc open var increaceColor = UIColor.red
+    @objc open var decreaceColor = UIColor.red
+    @objc open var marketDot:Int = 0
+    @objc open var valueFontSize = UIFont.systemFont(ofSize: 12) //= 12
     
     @objc open let animator: Animator
     
