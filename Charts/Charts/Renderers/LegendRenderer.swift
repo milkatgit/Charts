@@ -246,7 +246,8 @@ open class LegendRenderer: Renderer
             }
             else
             {
-                originPosX = viewPortHandler.contentLeft + xoffset
+                //newAdd 不依赖画布
+                originPosX =  xoffset//viewPortHandler.contentLeft +
             }
             
             if direction == .rightToLeft

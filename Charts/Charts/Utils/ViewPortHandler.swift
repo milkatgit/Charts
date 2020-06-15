@@ -266,19 +266,19 @@ open class ViewPortHandler: NSObject
         
         return _touchMatrix
     }
-    
     /// call this method to refresh the graph with a given matrix
-        @objc @discardableResult open func refresh2(newMatrix: CGAffineTransform, chart: ChartViewBase, invalidate: Bool) -> CGAffineTransform
-        {
-            _touchMatrix = newMatrix
-            
-            // make sure scale and translation are within their bounds
-    //        limitTransAndScale(matrix: &_touchMatrix, content: _contentRect)
-            
-            chart.setNeedsDisplay()
-            
-            return _touchMatrix
-        }
+    @objc @discardableResult open func refresh2(newMatrix: CGAffineTransform, chart: ChartViewBase, invalidate: Bool) -> CGAffineTransform
+    {
+        _touchMatrix = newMatrix
+        
+        // make sure scale and translation are within their bounds
+//        limitTransAndScale(matrix: &_touchMatrix, content: _contentRect)
+        
+        chart.setNeedsDisplay()
+        
+        return _touchMatrix
+    }
+    
     /// limits the maximum scale and X translation of the given matrix
     private func limitTransAndScale(matrix: inout CGAffineTransform, content: CGRect?)
     {

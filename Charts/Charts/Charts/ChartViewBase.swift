@@ -34,6 +34,7 @@ public protocol ChartViewDelegate
     // Callbacks when the chart is moved / translated via drag gesture.
     @objc optional func chartTranslated(_ chartView: ChartViewBase, dX: CGFloat, dY: CGFloat)
     
+    @objc optional func chartViewPortChange(_ chartView: ChartViewBase)
 //    @objc optional func chartMoveZM(_ chartView: ChartViewBase, point: CGPoint, layeX: CAShapeLayer,layerY:CAShapeLayer, entry: ChartDataEntry)
 
 

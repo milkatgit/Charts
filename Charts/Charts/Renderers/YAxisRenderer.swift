@@ -61,7 +61,8 @@ open class YAxisRenderer: AxisRendererBase
             else
             {
                 textAlign = .left
-                xPos = viewPortHandler.offsetLeft + xoffset
+                //newAdd 不依赖画布
+                xPos =  xoffset//viewPortHandler.offsetLeft +
             }
             
         }

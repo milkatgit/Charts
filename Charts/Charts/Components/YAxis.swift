@@ -30,11 +30,6 @@ open class YAxis: AxisBase
         case insideChart
     }
     
-   
-//        : Bool {
-//        set { ZM_isKlineTimeCJL = newValue}
-//        get { return ZM_isKlineTimeCJL}
-//    }
     
     ///  Enum that specifies the axis a DataSet should be plotted against, either Left or Right.
     @objc

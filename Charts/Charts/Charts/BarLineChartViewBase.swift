@@ -24,6 +24,10 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     //newAdd[
     @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
     @objc open var ZM_ShadowEndColor:UIColor? = nil//]
+    @objc open var currentBarWidth :CGFloat {
+        return viewPortHandler.contentWidth / CGFloat(visibleXRange + 1)
+    }
+    
     
     /// the maximum number of entries to which values will be drawn
     /// (entry numbers greater than this value will cause value-labels to disappear)
@@ -437,6 +441,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
             }
         }
     }
+    
     
     internal override func calculateOffsets()
     {
@@ -880,51 +885,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         // Did we managed to actually drag or did we reach the edge?
         return matrix.tx != originalMatrix.tx || matrix.ty != originalMatrix.ty
     }
-    var cache:CGFloat = 0.0
     
-    @objc open func performPanChange(translation: CGPoint,candleWidth:CGFloat) -> Bool
-    {
-        var translation = translation
-        
-        let originalMatrix = _viewPortHandler.touchMatrix
-    
-        
-        if (abs(cache) < candleWidth) {
-            cache += translation.x
-        }else {
-            
-            let count = abs(cache) / candleWidth
-            let x = cache > 0 ? count * candleWidth : -count * candleWidth
-//            var matrix:CGAffineTransform?
-            var matrix = CGAffineTransform(translationX: x, y: translation.y)
-            matrix = originalMatrix.concatenating(matrix)
-            matrix = _viewPortHandler.refresh(newMatrix: matrix, chart: self, invalidate: true)
-            cache -= x
-            if delegate !== nil
-            {
-                delegate?.chartTranslated?(self, dX: x, dY: translation.y)
-            }
-            return matrix.tx != originalMatrix.tx || matrix.ty != originalMatrix.ty
-        }
-            return false
-    }
-//    - (BOOL)performPanChange:(CGPoint)translation chart:(CombinedChartView *)chart{
-//        CGAffineTransform originalMatrix = chart.viewPortHandler.touchMatrix;
-//        NSInteger candleWidth = [self getCurrentCandleNum];
-//        CGAffineTransform matrix;
-//        if (self.cache < candleWidth) {
-//            self.cache += translation.x;
-//        }else {
-//
-//            NSInteger count = self.cache / candleWidth;
-//            CGFloat x = count * candleWidth;
-//            matrix = CGAffineTransformMakeTranslation(x, translation.y);
-//            matrix = CGAffineTransformConcat(originalMatrix, matrix);
-//            matrix = [chart.viewPortHandler refreshWithNewMatrix:matrix chart:chart invalidate:true];
-//            self.cache = 0;
-//        }
-//        return matrix.tx != originalMatrix.tx || matrix.ty != originalMatrix.ty;
-//    }
     
     private func isTouchInverted() -> Bool
     {
@@ -2024,7 +1985,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         getTransformer(forAxis: .left).pixelToValues(&pt)
         
-        return ceil(max(xAxis._axisMinimum, Double(pt.x)))
+        return ceil(max(xAxis._axisMinimum, Double(pt.x)))//
     }
     
     /// - returns: The highest x-index (value on the x-axis) that is still visible on the chart.
@@ -2036,6 +1997,6 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         getTransformer(forAxis: .left).pixelToValues(&pt)
 
-        return floor(min(xAxis._axisMaximum, Double(pt.x)))
+        return floor(min(xAxis._axisMaximum, Double(pt.x)))//
     }
 }
