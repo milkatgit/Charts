@@ -63,18 +63,29 @@ open class AxisRendererBase: Renderer
     /// - parameter max: the maximum value in the data object for this axis
     @objc open func computeAxis(min: Double, max: Double, inverted: Bool)
     {
+        //newAdd
+        guard let axis = self.axis else { return }
+        if axis._indicatorType == .kdj {
+            axis.entries = [0,20,50,80]
+            return
+        }
+        if axis._indicatorType == .rsi {
+            axis.entries = [50]
+            return
+        }
+        
         var min = min, max = max
         
         if let transformer = self.transformer
         {
             //newAdd[
-            if ZM_TopSpace != 0.0 {
-                let space = ZM_TopSpace
-                let labelH = axis?.labelFont.lineHeight ?? 0.0
-                
-                let p = transformer.valueForTouchPoint(CGPoint(x: viewPortHandler.contentLeft, y: space+labelH))
-                max = Double(p.y)
-            }//]
+//            if ZM_TopSpace != 0.0 {
+//                let space = ZM_TopSpace
+//                let labelH = axis?.labelFont.lineHeight ?? 0.0
+//                
+//                let p = transformer.valueForTouchPoint(CGPoint(x: viewPortHandler.contentLeft, y: space+labelH))
+//                max = Double(p.y)
+//            }//]
             // calculate the starting and entry point of the y-labels (depending on zoom / contentrect bounds)
             if viewPortHandler.contentWidth > 10.0 && !viewPortHandler.isFullyZoomedOutY
             {
@@ -95,6 +106,29 @@ open class AxisRendererBase: Renderer
         }
         
         computeAxisValues(min: min, max: max)
+    }
+    
+    //newAdd
+    //记录 -> 右边根据左边显示对应刻度
+    //self.positions = positions
+    @objc open func tsformedPositions() -> [CGPoint]
+    {
+        guard
+            let yAxis = self.axis as? YAxis,
+            let transformer = self.transformer
+            else { return [CGPoint]() }
+        var positions = [CGPoint]()
+        let entries = yAxis.entries
+        
+        for i in stride(from: 0, to: yAxis.entryCount, by: 1)
+        {
+            positions.append(CGPoint(x: 0.0, y: entries[i]))
+        }
+        
+        transformer.pointValuesToPixel(&positions)
+
+
+        return positions
     }
     
     /// Sets up the axis values. Computes the desired number of labels between the two given extremes.
@@ -129,150 +163,72 @@ open class AxisRendererBase: Renderer
         // Normalize interval
         let intervalMagnitude = pow(10.0, Double(Int(log10(interval)))).roundedToNextSignficant()
         let intervalSigDigit = Int(interval / intervalMagnitude)
+        
+        //newAdd
+        if axis._indicatorType == .cjl {
+            let rawInterval = range / Double(labelCount+1)
+            var interval = rawInterval.roundedToNextSignficant()
+            var leftSpace = yMax - interval * Double(labelCount)
+
+            if leftSpace > interval * 1.5 {
+                let x = (rawInterval - interval).roundedToNextSignficant()
+                interval += x
+            }else if leftSpace < interval * 0.6 {
+                let x = (-rawInterval + interval).roundedToNextSignficant()
+                interval -= x
+            }
+            var first = interval
+            axis.entries.removeAll(keepingCapacity: true)
+            axis.entries.reserveCapacity(labelCount)
+            
+            var f = first
+            var i = 0
+            var n = labelCount
+            
+            while i < n
+            {
+                if f == 0.0
+                {
+                    // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
+                    f = 0.0
+                }
+                
+                axis.entries.append(Double(f))
+                
+                f += interval
+                i += 1
+            }
+            //记录positions
+            axis.positions = tsformedPositions()
+            axis.decimals = 0
+            return
+        }
+        
         if intervalSigDigit > 5
         {
             // Use one order of magnitude higher, to avoid intervals like 0.9 or 90
             // if it's 0.0 after floor(), we use the old value
             interval = floor(10.0 * intervalMagnitude) == 0.0 ? interval : floor(10.0 * intervalMagnitude)
         }
+        //newAdd - k线成交量附图显示一条线
+        if axis.axisLabelShowOne == true {
+            axis.entries.removeAll(keepingCapacity: true)
+            axis.entries.reserveCapacity(labelCount)
+            var first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
+            axis.entries.append(Double(first))
+            // set decimals
+            if interval < 1
+            {
+                axis.decimals = Int(ceil(-log10(interval)))
+            }
+            else
+            {
+                axis.decimals = 0
+            }
+            return
+        }
         
         var n = axis.centerAxisLabelsEnabled ? 1 : 0
-        
-        //newAdd
-//        if axis .isKind(of: YAxis.self) {
-//            if (axis as! YAxis) .ZM_isKlineTimeCJL == true {
-//                var x = NSNotFound
-//                var refCount = 0
-//                
-//                //最大值 1185
-//                var ZMMax = Int(ceil(max / 5.0)) //237.0 -> 237
-//                var ZMMin = Int(ceil(max / 6.0)) //197.5 -> 198
-//                
-//                if ZMMin >= 100 {
-//                    while ZMMin >= 100 {
-//                        refCount += 1
-//                        ZMMax = ZMMax / 10 //  198 -> 19
-//                        ZMMin = ZMMin / 10 //  198 -> 19
-//                    }
-//                    
-//                }else {
-//                    //小于100怎么处理
-//                }
-//                //优先找5的倍数
-//                for i in ZMMin ... ZMMax {
-//                    if i % 5 == 0 {
-//                        x = i
-//                        if i % 10 == 0 {
-//                            x = i
-//                            break
-//                        }
-//                    }
-//                }
-//                //如果没有5的倍数找3的倍数
-//                if x == NSNotFound {
-//                    for i in ZMMin ... ZMMax {
-//                        if i % 3 == 0 {
-//                            x = i
-//                            break
-//                        }
-//                    }
-//                }
-//                
-//                if refCount != 0 {
-//                    for j in 0 ... refCount {
-//                        x *= 10
-//                    }
-//                }
-//                
-//                // Ensure stops contains at least n elements.
-//                axis.entries.removeAll(keepingCapacity: true)
-//                axis.entries.reserveCapacity(5)
-//                
-//                var f = x
-//                var i = 0
-//                while i < 5
-//                {
-//                    if f == Int(0.0)
-//                    {
-//                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
-//                        f = Int(0.0)
-//                    }
-//                    
-//                    axis.entries.append(Double(f))
-//                    
-//                    f += x
-//                    i += 1
-//                }
-//            }
-//        }
-//        else {
-//            
-//            // force label count
-//            if axis.isForceLabelsEnabled
-//            {
-//                interval = Double(range) / Double(labelCount - 1)
-//                
-//                // Ensure stops contains at least n elements.
-//                axis.entries.removeAll(keepingCapacity: true)
-//                axis.entries.reserveCapacity(labelCount)
-//                
-//                var v = yMin
-//                
-//                for _ in 0 ..< labelCount
-//                {
-//                    axis.entries.append(v)
-//                    v += interval
-//                }
-//                
-//                n = labelCount
-//            }
-//            else
-//            {
-//                // no forced count
-//                
-//                var first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
-//                
-//                if axis.centerAxisLabelsEnabled
-//                {
-//                    first -= interval
-//                }
-//                
-//                let last = interval == 0.0 ? 0.0 : (floor(yMax / interval) * interval).nextUp
-//                
-//                if interval != 0.0 && last != first
-//                {
-//                    for _ in stride(from: first, through: last, by: interval)
-//                    {
-//                        n += 1
-//                    }
-//                }
-//                else if last == first && n == 0
-//                {
-//                    n = 1
-//                }
-//                
-//                // Ensure stops contains at least n elements.
-//                axis.entries.removeAll(keepingCapacity: true)
-//                axis.entries.reserveCapacity(labelCount)
-//                
-//                var f = first
-//                var i = 0
-//                while i < n
-//                {
-//                    if f == 0.0
-//                    {
-//                        // Fix for IEEE negative zero case (Where value == -0.0, and 0.0 == -0.0)
-//                        f = 0.0
-//                    }
-//                    
-//                    axis.entries.append(Double(f))
-//                    
-//                    f += interval
-//                    i += 1
-//                }
-//            }
-//        }
-        
         
         // force label count
         if axis.isForceLabelsEnabled
@@ -303,7 +259,6 @@ open class AxisRendererBase: Renderer
             {
                 first -= interval
             }
-            
             let last = interval == 0.0 ? 0.0 : (floor(yMax / interval) * interval).nextUp
             
             if interval != 0.0 && last != first
@@ -317,7 +272,20 @@ open class AxisRendererBase: Renderer
             {
                 n = 1
             }
-            
+                
+            //newAdd
+            while n > labelCount {
+                n = 0
+                interval += intervalMagnitude
+                first = interval == 0.0 ? 0.0 : ceil(yMin / interval) * interval
+                if interval != 0.0 && last != first
+                {
+                    for _ in stride(from: first, through: last, by: interval)
+                    {
+                        n += 1
+                    }
+                }
+            }
             // Ensure stops contains at least n elements.
             axis.entries.removeAll(keepingCapacity: true)
             axis.entries.reserveCapacity(labelCount)
@@ -338,6 +306,38 @@ open class AxisRendererBase: Renderer
                 i += 1
             }
         }
+        //newAdd
+        if labelCount - axis.entries.count == 1  {
+            //少一个
+            let nextCloseInterval = intervalSigDigit > 5 || intervalSigDigit == 0 ? interval / 2.0 : interval - intervalMagnitude//30->20
+            let f = axis.entries.first! - yMin
+            let e = yMax - axis.entries.last!
+            if f > 0 {
+                if e > 0 {
+                    if f > e {
+//                        print("在底部添加刻度")
+                        let x = axis.entries.first! - nextCloseInterval
+                        axis.entries.insert(Double(x), at: 0)
+                    }else {
+//                         print("在顶部添加刻度")
+                        let x = axis.entries.last! + nextCloseInterval
+                        axis.entries.append(Double(x))
+                    }
+                }
+            }
+        }
+        if axis.entries.count > labelCount {
+            let f = abs(yMin - axis.entries.first!)
+            let e = abs(yMax - axis.entries.last!)
+            if f > e {
+//                print("计算出多\(axis.entries.count-labelCount)根,移除最上面的")
+                axis.entries.removeLast()
+            }else {
+//                print("计算出多\(axis.entries.count-labelCount)根,移除最下面的")
+                axis.entries.removeFirst()
+            }
+        }
+        
         // set decimals
         if interval < 1
         {

@@ -80,12 +80,36 @@ open class YAxisRenderer: AxisRendererBase
             }
         }
         
-        let poss = transformedPositions()
-        
+        var poss:[CGPoint]!
+        //分时成交量附图
+        if yAxis.isFollowLeftAxis == true {
+            var positions = [CGPoint]()
+            
+            let poss0 = yAxis.positions
+            yAxis.entries.removeAll()
+            let transformer = self.transformer!
+            for i in stride(from: 0, to: poss0.count, by: 1)
+            {
+                let f = transformer.valueForTouchPoint(poss0[i])
+                yAxis.entries.append(Double(f.y))
+            }
+            let entries = yAxis.entries
+            
+            for i in stride(from: 0, to: yAxis.entries.count, by: 1)
+            {
+                positions.append(CGPoint(x: 0.0, y: entries[i]))
+            }
+            
+            transformer.pointValuesToPixel(&positions)
+            poss = positions
+            
+        }else {
+            poss = transformedPositions()
+        }
         drawYLabels(
             context: context,
             fixedPosition: xPos,
-            positions: transformedPositions(),
+            positions: poss,
             offset: yoffset - yAxis.labelFont.lineHeight,
             textAlign: textAlign)
     }
@@ -147,7 +171,6 @@ open class YAxisRenderer: AxisRendererBase
         
         let from = yAxis.isDrawBottomYLabelEntryEnabled ? 0 : 1
         //newAdd
-//        let to = yAxis.isDrawTopYLabelEntryEnabled ? yAxis.entryCount : (yAxis.entryCount - 1)
         let to = yAxis.isDrawTopYLabelEntryEnabled ? positions.count : (positions.count - 1)
 
         for i in stride(from: from, to: to, by: 1)
@@ -275,27 +298,14 @@ open class YAxisRenderer: AxisRendererBase
         var positions = [CGPoint]()
         let entries = yAxis.entries
         
-        if isZMCus {
-            positions.reserveCapacity(yAxis.entryCount)
-            for i in stride(from: 0, to: yAxis.entryCount, by: 1)
-            {
-                var p = CGPoint(x: 0.0, y: entries[i])
-                positions.append(p)
-            }
-            transformer.pointValuesToPixel(&positions)
-        }else {
-            //newAdd
-            for i in stride(from: 0, to: yAxis.entryCount, by: 1)
-            {
-                var p = CGPoint(x: 0.0, y: entries[i])
-                //            positions.append(p)
-                transformer.pointValueToPixel(&p)
-                let lineH = yAxis.labelFont.lineHeight
-//                if p.y - lineH >= viewPortHandler.contentTop && p.y <= viewPortHandler.contentBottom{
-                    positions.append(p)
-//                }
-            }
+        for i in stride(from: 0, to: yAxis.entryCount, by: 1)
+        {
+            positions.append(CGPoint(x: 0.0, y: entries[i]))
         }
+        
+        transformer.pointValuesToPixel(&positions)
+
+        
         return positions
     }
 

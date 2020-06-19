@@ -21,6 +21,20 @@ open class AxisBase: ComponentBase
         super.init()
     }
     
+    //newAdd
+    @objc(ZMIndicatorType)
+    public enum ZMIndicatorType: Int
+    {
+        case none
+        case cjl
+        //不需要计算 固定的刻度
+        case kdj//0,20,50,80
+        case rsi//50
+    }
+    @objc open var _indicatorType = ZMIndicatorType.none
+    @objc open var isFollowLeftAxis = false
+    
+    
     /// Custom formatter that is used instead of the auto-formatter if set
     private var _axisValueFormatter: IAxisValueFormatter?
     
@@ -72,6 +86,8 @@ open class AxisBase: ComponentBase
     
     /// the actual array of entries
     @objc open var entries = [Double]()
+    //newAdd 记录位置px信息 u右边跟随左边显示用
+    @objc open var positions = [CGPoint]()
     
     /// axis label entries only used for centered labels
     @objc open var centeredEntries = [Double]()
@@ -222,6 +238,8 @@ open class AxisBase: ComponentBase
     @objc open var axisMaxLabels = Int(25) {
         didSet { axisMinLabels = axisMaxLabels > 0 ? axisMaxLabels : oldValue }
     }
+    //newAdd
+    @objc open var axisLabelShowOne = false
     
     /// the number of label entries the axis should have
     /// max = 25,

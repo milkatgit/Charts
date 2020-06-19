@@ -22,7 +22,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
     
     
     //newAdd[
-    @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
+//    @objc open var topLabel = UILabel .init(frame: CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.size.width, height: 13))
     @objc open var ZM_ShadowEndColor:UIColor? = nil//]
     @objc open var currentBarWidth :CGFloat {
         return viewPortHandler.contentWidth / CGFloat(visibleXRange + 1)
@@ -129,9 +129,9 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         super.initialize()
 
         //newAdd
-        topLabel.font = UIFont.systemFont(ofSize: 10)
-        topLabel.numberOfLines = 0
-        self.addSubview(topLabel)
+//        topLabel.font = UIFont.systemFont(ofSize: 10)
+//        topLabel.numberOfLines = 0
+//        self.addSubview(topLabel)
         
         _leftAxisTransformer = Transformer(viewPortHandler: _viewPortHandler)
         _rightAxisTransformer = Transformer(viewPortHandler: _viewPortHandler)
@@ -214,7 +214,9 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
 
         if leftAxis.isEnabled
         {
-            leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: leftAxis._axisMaximum, inverted: leftAxis.isInverted)
+            //newAdd
+            _leftYAxisRender()
+//            leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: leftAxis._axisMaximum, inverted: leftAxis.isInverted)
         }
         
         if rightAxis.isEnabled
@@ -224,7 +226,8 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         if _xAxis.isEnabled
         {
-            xAxisRenderer.computeAxis(min: _xAxis._axisMinimum, max: _xAxis._axisMaximum, inverted: false)
+            //newAdd
+//            xAxisRenderer.computeAxis(min: _xAxis._axisMinimum, max: _xAxis._axisMaximum, inverted: false)
         }
         
         xAxisRenderer.renderAxisLine(context: context)
@@ -232,13 +235,13 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         rightYAxisRenderer.renderAxisLine(context: context)
 
         // The renderers are responsible for clipping, to account for line-width center etc.
-        xAxisRenderer.renderGridLines(context: context)
+//        xAxisRenderer.renderGridLines(context: context)
         leftYAxisRenderer.renderGridLines(context: context)
         rightYAxisRenderer.renderGridLines(context: context)
         
         if _xAxis.isEnabled && _xAxis.isDrawLimitLinesBehindDataEnabled
         {
-            xAxisRenderer.renderLimitLines(context: context)
+//            xAxisRenderer.renderLimitLines(context: context)
         }
         
         if leftAxis.isEnabled && leftAxis.isDrawLimitLinesBehindDataEnabled
@@ -270,7 +273,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         if _xAxis.isEnabled && !_xAxis.isDrawLimitLinesBehindDataEnabled
         {
-            xAxisRenderer.renderLimitLines(context: context)
+//            xAxisRenderer.renderLimitLines(context: context)
         }
         
         if leftAxis.isEnabled && !leftAxis.isDrawLimitLinesBehindDataEnabled
@@ -283,7 +286,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
             rightYAxisRenderer.renderLimitLines(context: context)
         }
         
-        xAxisRenderer.renderAxisLabels(context: context)
+//        xAxisRenderer.renderAxisLabels(context: context)
         leftYAxisRenderer.renderAxisLabels(context: context)
         rightYAxisRenderer.renderAxisLabels(context: context)
 
@@ -347,6 +350,28 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         _rightAxisTransformer.prepareMatrixOffset(inverted: rightAxis.isInverted)
         _leftAxisTransformer.prepareMatrixOffset(inverted: leftAxis.isInverted)
     }
+    //newAdd
+    func _leftYAxisRender() {
+        //newAdd - fix-> 刻度线label和legend覆盖/刻度线label超出边框
+        var reduceH = leftAxis.labelFont.lineHeight * 1.0
+        if _legend.enabled == true && _legend.drawInside == true {
+            reduceH += _legend.neededHeight
+        }
+        let range = leftAxis._axisMaximum - leftAxis._axisMinimum
+        
+        let max = leftAxis._indicatorType == .cjl ? leftAxis._axisMaximum : leftAxis._axisMaximum - Double(reduceH / viewPortHandler.contentHeight) * range
+        let min = leftAxis._indicatorType == .cjl ? 0 : leftAxis._axisMinimum + Double(15 / viewPortHandler.contentHeight) * range
+        if leftYAxisRenderer.isZMCus {
+            leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: leftAxis._axisMaximum, inverted: leftAxis.isInverted)
+        }else {
+            
+            // 换位置了上面
+            leftYAxisRenderer.computeAxis(min: min/*leftAxis._axisMinimum*/, max: max/*leftAxis._axisMaximum*/, inverted: leftAxis.isInverted)
+        }
+        if rightAxis.isFollowLeftAxis == true {
+            rightAxis.positions = leftAxis.positions
+        }
+    }
     
     open override func notifyDataSetChanged()
     {
@@ -354,22 +379,36 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         
         calcMinMax()
         
-        leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: leftAxis._axisMaximum, inverted: leftAxis.isInverted)
-        rightYAxisRenderer.computeAxis(min: rightAxis._axisMinimum, max: rightAxis._axisMaximum, inverted: rightAxis.isInverted)
+//        leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: leftAxis._axisMaximum, inverted: leftAxis.isInverted)
+        //newAdd
+        if rightAxis.enabled {
+            rightYAxisRenderer.computeAxis(min: rightAxis._axisMinimum, max: rightAxis._axisMaximum, inverted: rightAxis.isInverted)
+        }
         
         if let data = _data
         {
-            xAxisRenderer.computeAxis(
-                min: _xAxis._axisMinimum,
-                max: _xAxis._axisMaximum,
-                inverted: false)
+            //newAdd
+//            xAxisRenderer.computeAxis(
+//                min: _xAxis._axisMinimum,
+//                max: _xAxis._axisMaximum,
+//                inverted: false)
 
             if _legend !== nil && _legend.enabled == true//????为什么不加上这个?
             {
                 legendRenderer?.computeLegend(data: data)
             }
         }
-        
+//        //newAdd - fix-> 刻度线label和legend覆盖/刻度线label超出边框
+//        var reduceH = leftAxis.labelFont.lineHeight * 2.0
+//        if _legend.enabled == true && _legend.drawInside == true {
+//            reduceH += _legend.neededHeight
+//        }
+//        let range = leftAxis._axisMaximum - leftAxis._axisMinimum
+//
+//        let max = leftAxis._axisMaximum - Double(reduceH / viewPortHandler.contentHeight) * range
+//        // 换位置了上面
+//        leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: max/*leftAxis._axisMaximum*/, inverted: leftAxis.isInverted)
+        _leftYAxisRender()
         calculateOffsets()
         
         setNeedsDisplay()
