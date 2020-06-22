@@ -146,7 +146,15 @@ open class YAxis: AxisBase
         // if custom, use value as is, else use data value
         var min = _customAxisMin ? _axisMinimum : dataMin
         var max = _customAxisMax ? _axisMaximum : dataMax
-        
+        if _indicatorType == .kdj {
+            if min > 0 {
+                min = 0
+            }
+            if max < 100 {
+                max = 100
+            }
+        }
+
         // temporary range (before calculations)
         let range = abs(max - min)
         

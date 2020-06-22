@@ -222,7 +222,7 @@ open class YAxisRenderer: AxisRendererBase
 
  
 //           context.clip(to: self.gridClippingRect)/*newAdd*/
-            
+
             context.setShouldAntialias(yAxis.gridAntialiasEnabled)
             context.setStrokeColor(yAxis.gridColor.cgColor)
             context.setLineWidth(yAxis.gridLineWidth)
@@ -251,13 +251,15 @@ open class YAxisRenderer: AxisRendererBase
                         context.setLineDash(phase: yAxis.gridLineDashPhase, lengths: yAxis.gridLineDashLengths)
                     }
                 }
-
-                ///[ newAdd - 等于绘制边框最高或者最低-不绘制
-                let position = positions[i]
-                if (position.y != viewPortHandler.contentBottom && position.y != viewPortHandler.contentTop /*&& _x > 0.1 && _x2 > 0.1*/)   {
-                    drawGridLine(context: context, position: positions[i])
-                }///]
-                
+                if yAxis._indicatorType == .rsi || yAxis._indicatorType == .cci{
+                    if i != 1 {
+                        context.setStrokeColor(yAxis.limitColor.cgColor)
+                        context.setLineDash(phase: 0, lengths: yAxis.limitDashe)
+                    }else {
+                        context.setStrokeColor(yAxis.gridColor.cgColor)
+                        context.setLineDash(phase: yAxis.gridLineDashPhase, lengths: yAxis.gridLineDashLengths)                    }
+                }
+                drawGridLine(context: context, position: positions[i])
             }
         }
 

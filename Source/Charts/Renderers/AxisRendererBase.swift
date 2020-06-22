@@ -70,7 +70,11 @@ open class AxisRendererBase: Renderer
             return
         }
         if axis._indicatorType == .rsi {
-            axis.entries = [50]
+            axis.entries = [20,50,80]
+            return
+        }
+        if axis._indicatorType == .cci {
+            axis.entries = [-100,0,100]//
             return
         }
         

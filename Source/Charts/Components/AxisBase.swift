@@ -21,6 +21,9 @@ open class AxisBase: ComponentBase
         super.init()
     }
     
+    /// 除去绘制文字本身高度/尽量不靠近底部和顶部
+    @objc open var isNotCloseTopOrBottom = false
+    
     //newAdd
     @objc(ZMIndicatorType)
     public enum ZMIndicatorType: Int
@@ -30,10 +33,13 @@ open class AxisBase: ComponentBase
         //不需要计算 固定的刻度
         case kdj//0,20,50,80
         case rsi//50
+        //k线
+        case cci//0,100,-100
     }
     @objc open var _indicatorType = ZMIndicatorType.none
     @objc open var isFollowLeftAxis = false
-    
+    @objc open var limitColor = UIColor.red
+    @objc open var limitDashe:[CGFloat] = [2.0,2.0]
     
     /// Custom formatter that is used instead of the auto-formatter if set
     private var _axisValueFormatter: IAxisValueFormatter?

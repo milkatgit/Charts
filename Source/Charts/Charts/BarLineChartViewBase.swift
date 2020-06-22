@@ -358,16 +358,19 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
             reduceH += _legend.neededHeight
         }
         let range = leftAxis._axisMaximum - leftAxis._axisMinimum
+        var max = leftAxis._axisMaximum
+        var min = leftAxis._axisMinimum
         
-        let max = leftAxis._indicatorType == .cjl ? leftAxis._axisMaximum : leftAxis._axisMaximum - Double(reduceH / viewPortHandler.contentHeight) * range
-        let min = leftAxis._indicatorType == .cjl ? 0 : leftAxis._axisMinimum + Double(15 / viewPortHandler.contentHeight) * range
-        if leftYAxisRenderer.isZMCus {
-            leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: leftAxis._axisMaximum, inverted: leftAxis.isInverted)
-        }else {
-            
-            // 换位置了上面
-            leftYAxisRenderer.computeAxis(min: min/*leftAxis._axisMinimum*/, max: max/*leftAxis._axisMaximum*/, inverted: leftAxis.isInverted)
+        if leftAxis._indicatorType == .cjl {
+            min = 0
         }
+
+        if leftAxis.isNotCloseTopOrBottom {
+            max = leftAxis._axisMaximum - Double(reduceH / viewPortHandler.contentHeight) * range
+            min = leftAxis._axisMinimum + Double(15 / viewPortHandler.contentHeight) * range
+        }
+        // 换位置了上面
+        leftYAxisRenderer.computeAxis(min: min/*leftAxis._axisMinimum*/, max: max/*leftAxis._axisMaximum*/, inverted: leftAxis.isInverted)
         if rightAxis.isFollowLeftAxis == true {
             rightAxis.positions = leftAxis.positions
         }
@@ -398,16 +401,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
                 legendRenderer?.computeLegend(data: data)
             }
         }
-//        //newAdd - fix-> 刻度线label和legend覆盖/刻度线label超出边框
-//        var reduceH = leftAxis.labelFont.lineHeight * 2.0
-//        if _legend.enabled == true && _legend.drawInside == true {
-//            reduceH += _legend.neededHeight
-//        }
-//        let range = leftAxis._axisMaximum - leftAxis._axisMinimum
-//
-//        let max = leftAxis._axisMaximum - Double(reduceH / viewPortHandler.contentHeight) * range
-//        // 换位置了上面
-//        leftYAxisRenderer.computeAxis(min: leftAxis._axisMinimum, max: max/*leftAxis._axisMaximum*/, inverted: leftAxis.isInverted)
+
         _leftYAxisRender()
         calculateOffsets()
         
