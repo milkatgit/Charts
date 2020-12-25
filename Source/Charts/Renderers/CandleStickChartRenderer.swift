@@ -21,7 +21,8 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
 {
     //newAdd
     var arrowMinMax = "<---"
-
+    let maxNumNoDrawBorder = 1000//超过后不绘制框
+    
 
     @objc open weak var dataProvider: CandleChartDataProvider?
     
@@ -152,20 +153,24 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
                     trans.rectValueToPixel(&_bodyRect)
                     
                     // draw body differently for increasing and decreasing entry
-                    if open == close {
+                    //newAdd
+                    if _xBounds.range < maxNumNoDrawBorder {
                         
-                        context.setStrokeColor((entryColor?.cgColor)!)
-                        context.stroke(_bodyRect)
-                    }else {
-                        if entryIsFilled!
-                        {
-                            context.setFillColor((entryColor?.cgColor)!)
-                            context.fill(_bodyRect)
-                        }
-                        else
-                        {
+                        if open == close {
+                            
                             context.setStrokeColor((entryColor?.cgColor)!)
                             context.stroke(_bodyRect)
+                        }else {
+                            if entryIsFilled!
+                            {
+                                context.setFillColor((entryColor?.cgColor)!)
+                                context.fill(_bodyRect)
+                            }
+                            else
+                            {
+                                context.setStrokeColor((entryColor?.cgColor)!)
+                                context.stroke(_bodyRect)
+                            }
                         }
                     }
                    
@@ -244,43 +249,45 @@ open class CandleStickChartRenderer: LineScatterCandleRadarRenderer
                     trans.rectValueToPixel(&_bodyRect)
                     
                     // draw body differently for increasing and decreasing entry
-                    
-                    if open > close
-                    {
-                        let color = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
+                    if _xBounds.range < maxNumNoDrawBorder {
                         
-                        if dataSet.isDecreasingFilled
+                        if open > close
                         {
-                            context.setFillColor(color.cgColor)
-                            context.fill(_bodyRect)
+                            let color = dataSet.decreasingColor ?? dataSet.color(atIndex: j)
+                            
+                            if dataSet.isDecreasingFilled
+                            {
+                                context.setFillColor(color.cgColor)
+                                context.fill(_bodyRect)
+                            }
+                            else
+                            {
+                                context.setStrokeColor(color.cgColor)
+                                context.stroke(_bodyRect)
+                            }
+                        }
+                        else if open < close
+                        {
+                            let color = dataSet.increasingColor ?? dataSet.color(atIndex: j)
+                            
+                            if dataSet.isIncreasingFilled
+                            {
+                                context.setFillColor(color.cgColor)
+                                context.fill(_bodyRect)
+                            }
+                            else
+                            {
+                                context.setStrokeColor(color.cgColor)
+                                context.stroke(_bodyRect)
+                            }
                         }
                         else
                         {
+                            let color = dataSet.neutralColor ?? dataSet.color(atIndex: j)
+                            
                             context.setStrokeColor(color.cgColor)
                             context.stroke(_bodyRect)
                         }
-                    }
-                    else if open < close
-                    {
-                        let color = dataSet.increasingColor ?? dataSet.color(atIndex: j)
-                        
-                        if dataSet.isIncreasingFilled
-                        {
-                            context.setFillColor(color.cgColor)
-                            context.fill(_bodyRect)
-                        }
-                        else
-                        {
-                            context.setStrokeColor(color.cgColor)
-                            context.stroke(_bodyRect)
-                        }
-                    }
-                    else
-                    {
-                        let color = dataSet.neutralColor ?? dataSet.color(atIndex: j)
-                        
-                        context.setStrokeColor(color.cgColor)
-                        context.stroke(_bodyRect)
                     }
                 }
                 else

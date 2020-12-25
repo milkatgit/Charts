@@ -25,6 +25,8 @@ open class ChartLimitLine: ComponentBase
         case rightTop
         case rightBottom
     }
+    //newAdd
+    @objc open var labelBgColor:UIColor?
     
     /// limit / maximum (the y-value or xIndex)
     @objc open var limit = Double(0.0)

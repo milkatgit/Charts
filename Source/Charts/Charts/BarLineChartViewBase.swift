@@ -372,6 +372,7 @@ open class BarLineChartViewBase: ChartViewBase, BarLineScatterCandleBubbleChartD
         // 换位置了上面
         leftYAxisRenderer.computeAxis(min: min/*leftAxis._axisMinimum*/, max: max/*leftAxis._axisMaximum*/, inverted: leftAxis.isInverted)
         if rightAxis.isFollowLeftAxis == true {
+            
             rightAxis.positions = leftAxis.positions
         }
     }

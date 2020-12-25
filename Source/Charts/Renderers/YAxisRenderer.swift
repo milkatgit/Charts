@@ -414,10 +414,15 @@ open class YAxisRenderer: AxisRendererBase
             {
                 let labelLineHeight = l.valueFont.lineHeight
                 
-               
-                
                 let xOffset: CGFloat = 4.0 + l.xOffset
                 let yOffset: CGFloat = l.lineWidth + labelLineHeight + l.yOffset
+                //newAdd-绘制背景view
+                if let color = l.labelBgColor {
+                    let w = (label as NSString).boundingRect(with: CGSize(width: 300, height: CGFloat.greatestFiniteMagnitude), options: .usesLineFragmentOrigin, attributes: [NSAttributedStringKey.font : l.valueFont], context: nil).size.width + 6
+                    
+                    context.setFillColor(color.cgColor)
+                    context.fill(CGRect(x: 0, y: position.y, width: w, height: 17))
+                }
                 
                     if l.labelPosition == .rightTop
                     {

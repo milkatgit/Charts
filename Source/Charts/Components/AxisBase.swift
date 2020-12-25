@@ -361,11 +361,14 @@ open class AxisBase: ComponentBase
         }
         set
         {
+            
             _customAxisMax = true
             _axisMaximum = newValue
             axisRange = abs(newValue - _axisMinimum)
         }
+        
     }
+    
     
     /// Calculates the minimum, maximum and range values of the YAxis with the given minimum and maximum values from the chart data.
     /// - parameter dataMin: the y-min value according to chart data
@@ -385,7 +388,7 @@ open class AxisBase: ComponentBase
             max = max + 1.0
             min = min - 1.0
         }
-        
+   
         _axisMinimum = min
         _axisMaximum = max
         
